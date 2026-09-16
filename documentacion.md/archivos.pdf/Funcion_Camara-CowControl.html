@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es-419">
+<head>
+<meta charset="UTF-8">
+<title>CowControl — Función de Cámara</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #4A2E1E;
+    background: #FAF3E8;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .marca {
+    font-size: 12px;
+    color: #C77C3B;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 6px;
+    color: #4A2E1E;
+  }
+  .subtitulo {
+    font-size: 13px;
+    color: #6F4A31;
+    margin-bottom: 22px;
+  }
+  h2 {
+    font-size: 16px;
+    color: #4A2E1E;
+    background: #F1E4D0;
+    padding: 8px 12px;
+    border-left: 5px solid #C77C3B;
+    border-radius: 4px;
+    margin-top: 26px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 13.5px;
+    color: #6F4A31;
+    margin: 16px 0 6px;
+    page-break-after: avoid;
+  }
+  p { margin: 6px 0; }
+  .cita {
+    background: #F1E4D0;
+    border-left: 4px solid #4F7942;
+    padding: 10px 14px;
+    font-style: italic;
+    color: #4A2E1E;
+    margin: 10px 0;
+    border-radius: 4px;
+    page-break-inside: avoid;
+  }
+  code {
+    background: #ECE0CC;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 12px;
+  }
+  pre {
+    background: #2E2116;
+    color: #F1E4D0;
+    padding: 10px 14px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 11.5px;
+    line-height: 1.5;
+    page-break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  .diagrama {
+    background: #2E2116;
+    color: #F1E4D0;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+    page-break-inside: avoid;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 12px; }
+  th, td { border: 1px solid #D9C6A8; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #F1E4D0; }
+  .pasos { list-style: none; padding: 0; margin: 10px 0; }
+  .pasos li {
+    background: #F1E4D0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    page-break-inside: avoid;
+  }
+  .pasos .num {
+    display: inline-block;
+    background: #C77C3B;
+    color: #fff;
+    font-weight: 700;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    margin-right: 8px;
+    font-size: 12px;
+  }
+  .etiqueta {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+  .etiqueta.bloqueante { background: #B3261E; color: #fff; }
+  .etiqueta.pendiente { background: #C77C3B; color: #fff; }
+  .caja-riesgo {
+    background: #F6E7DD;
+    border: 1px solid #C77C3B;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    page-break-inside: avoid;
+  }
+  .footer {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #D9C6A8;
+    font-size: 10.5px;
+    color: #8A6A4E;
+  }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+</style>
+</head>
+<body>
+
+<div class="marca">COWCONTROL — DOCUMENTACIÓN TÉCNICA</div>
+<h1>Función de cámara: qué falta y cómo se va a construir</h1>
+<div class="subtitulo">Plan de implementación de la grabación sincronizada con las lecturas RFID — estado: pendiente, sin implementar. Documento generado el 2026-09-01 — actualizado el 2026-09-11 con una segunda forma posible de hacerlo (ver sección 9, al final).</div>
+
+<h2>1. Qué pide el proyecto</h2>
+<p>La carpeta técnica original de CowControl (el documento presentado ante el colegio) exige una función de cámara vinculada al conteo. No alcanza con una foto suelta — pide específicamente <strong>video</strong>, con cada lectura de tag ubicada en el momento exacto en que ocurrió dentro de la grabación:</p>
+<div class="cita">"...los tiempos de grabación sincronizados y especificados cuando el animal en particular se acerca al sensor. Ejemplo: el ID número 2387 pasó en el minuto 8:33. La grabación queda guardada en la app y puede ser revisada cuando sea deseado."</div>
+<p>El plan original (de antes de que existiera la app Flutter) ya proponía usar la webcam de una notebook <strong>Juana Manso</strong> como cámara. Hoy no hay ningún módulo de cámara comprado ni planeado para la Raspberry Pi — se retoma esa idea original.</p>
+
+<h2>2. Estado actual</h2>
+<p><span class="etiqueta pendiente">100% PENDIENTE</span></p>
+<p>No existe ningún código, tabla, ni script relacionado con esto todavía. Este documento describe el plan a seguir, no algo ya construido.</p>
+
+<h2>3. Cómo se eligió la arquitectura</h2>
+<p>Se evaluaron 3 propuestas de arquitectura distintas e independientes para resolver el mismo problema (grabar con la Juana Manso y recortar automáticamente un clip corto de 2-3 segundos por cada tag leído, en vez de guardar el video completo, que sería muy pesado):</p>
+<table>
+  <tr><th>Propuesta</th><th>Idea central</th><th>Resultado</th></tr>
+  <tr><td><strong>Edge / todo local</strong></td><td>La notebook graba y corta los clips ella misma con ffmpeg. Solo suben los clips livianos a Supabase.</td><td><strong>✓ Elegida</strong></td></tr>
+  <tr><td>n8n como orquestador</td><td>La idea original de Santiago: n8n corriendo en la notebook, controlando todo el proceso con workflows visuales.</td><td>Descartada</td></tr>
+  <tr><td>Serverless (sin servidor propio)</td><td>El video sube completo a Supabase, un job de GitHub Actions lo baja, lo corta y sube los clips.</td><td>Descartada</td></tr>
+</table>
+<h3>Por qué se descartó n8n</h3>
+<p>Depende de que alguien se acuerde de prenderlo a mano antes de cada conteo, su función para ejecutar comandos (necesaria para correr ffmpeg) viene desactivada por defecto por seguridad, y su versión gratuita en la nube ya no existe de forma permanente. No resuelve nada que un script simple no resuelva más fácil, y es una herramienta nueva que nadie del equipo conoce.</p>
+<h3>Por qué gana la opción "todo local"</h3>
+<p>Es la única de las tres donde el video pesado nunca sale de la notebook — ni sube ni baja de ningún lado. Usa el mismo tipo de trabajo (Python + pedidos HTTP a Supabase) que ya se usa en <code>rfid_tick.py</code> para la Raspberry Pi, así que no hace falta aprender ninguna herramienta nueva. Es también la opción más barata en el uso real de la cuota gratuita de Supabase.</p>
+
+<h2>4. Arquitectura elegida</h2>
+<div class="diagrama">Notebook Juana Manso                          Supabase
+─────────────────────                        ─────────────────
+script Python en loop
+  │
+  ├─ consulta la tabla "conteos"  ────────►   conteos (estado)
+  │  cada pocos segundos
+  │
+  ├─ estado = 'en_curso' (nuevo)
+  │  → arranca a grabar con ffmpeg
+  │  → pide la hora a Supabase y la
+  │    guarda como el "cero" (t0)
+  │
+  ├─ sigue grabando aunque pase
+  │  por 'pausado' / 'en_curso'
+  │
+  ├─ estado = 'finalizado'
+  │  → cierra la grabación
+  │  → trae las lecturas del conteo ────────►  datos_lectura
+  │  → por cada lectura, calcula el                (fecha_hora,
+  │    offset (fecha_hora - t0) y                   conteo_id)
+  │    corta un clip de 2-3s con ffmpeg
+  │
+  └─ sube cada clip cortado          ────────►  Storage: bucket
+     (liviano, ~0.5MB c/u)                       "clips-conteo"
+                                                  │
+                                                  └─ guarda el link en
+                                                     datos_lectura.clip_url
+</div>
+
+<h2>5. Qué hay que agregar o cambiar</h2>
+
+<h3>5.1 — Base de datos (Supabase)</h3>
+<p>Dos cambios chicos, se pueden correr directo en el SQL Editor:</p>
+<pre><code>-- bucket nuevo para los clips (se crea desde el panel de Storage, no por SQL)
+-- nombre: clips-conteo
+
+-- columna nueva para guardar el link del clip de cada lectura
+alter table datos_lectura add column clip_url text;</code></pre>
+
+<h3>5.2 — Script nuevo en la notebook (Python)</h3>
+<p>Un script que corre en la Juana Manso mientras dura el conteo. Reutiliza el mismo patrón de <code>rfid_tick.py</code> (pedidos HTTP simples a Supabase con la <code>service_role key</code>), sumando:</p>
+<ul>
+  <li>Un loop que consulta el estado del conteo activo cada pocos segundos.</li>
+  <li>Arranque/cierre de <code>ffmpeg</code> como subproceso, grabando la webcam.</li>
+  <li>Al finalizar: por cada lectura, cálculo del punto exacto dentro del video y corte del clip con <code>ffmpeg</code>.</li>
+  <li>Subida de cada clip a Supabase Storage y actualización de <code>clip_url</code> en la lectura correspondiente.</li>
+</ul>
+<p>Ejemplo del comando de grabación (Windows, webcam vía DirectShow):</p>
+<pre><code>ffmpeg -f dshow -video_size 640x480 -framerate 15 -i video="Integrated Camera" ^
+       -c:v libx264 -preset ultrafast -pix_fmt yuv420p grabacion.mp4</code></pre>
+<p>Ejemplo del corte de un clip puntual:</p>
+<pre><code>ffmpeg -ss {inicio_segundos} -i grabacion.mp4 -t 3 ^
+       -c:v libx264 -preset ultrafast -c:a aac -y clip.mp4</code></pre>
+
+<h3>5.3 — App Flutter</h3>
+<ul>
+  <li>Agregar el campo <code>clipUrl</code> al modelo <code>Lectura</code>.</li>
+  <li>Sumar el paquete <code>video_player</code> (oficial, gratis) a <code>pubspec.yaml</code>.</li>
+  <li>Un botón/pantalla nueva para reproducir el clip — mismo patrón visual que los botones de Fertilidad/Vacunas/Observaciones que ya existen en la ficha del animal.</li>
+</ul>
+
+<h2>6. Bloqueante a resolver antes</h2>
+<p><span class="etiqueta bloqueante">BLOQUEA TODO LO DEMÁS</span></p>
+<p><code>rfid_tick.py</code> (el script que ya corre en la Raspberry Pi) todavía no manda <code>conteo_id</code> en cada lectura que inserta en <code>datos_lectura</code> — solo manda <code>rfid_uid</code>, <code>campo_id</code> y <code>fecha_hora</code>. Sin <code>conteo_id</code>, no hay forma de saber qué lecturas pertenecen a qué conteo/video. Hay que confirmar con el compañero a cargo del hardware si ya lo actualizó o sigue pendiente, y coordinar el cambio si falta.</p>
+
+<h2>7. Pasos a seguir, en orden</h2>
+<ol class="pasos">
+  <li><span class="num">1</span><strong>Confirmar el bloqueante</strong> — si <code>conteo_id</code> ya se está mandando desde la Raspberry Pi o sigue pendiente.</li>
+  <li><span class="num">2</span><strong>Prueba aislada de hardware</strong> — correr a mano los dos comandos de ffmpeg (grabar la webcam, cortar un clip) directo en la Juana Manso real, sin nada de Supabase todavía, para confirmar que la cámara coopera.</li>
+  <li><span class="num">3</span><strong>Cambios chicos en Supabase</strong> — crear el bucket <code>clips-conteo</code> y agregar la columna <code>clip_url</code>.</li>
+  <li><span class="num">4</span><strong>Script de arranque/parada</strong> en la notebook — el loop que vigila <code>conteos</code> y prende/apaga la grabación.</li>
+  <li><span class="num">5</span><strong>Lógica de corte y subida</strong> — recorrer las lecturas del conteo, cortar un clip por cada una, subir a Supabase.</li>
+  <li><span class="num">6</span><strong>Botón/pantalla en Flutter</strong> para reproducir el clip.</li>
+  <li><span class="num">7</span><strong>Prueba de punta a punta</strong> con hardware real, coordinando con el compañero a cargo de la Raspberry Pi — con margen antes de la presentación.</li>
+</ol>
+
+<h2>8. Riesgos conocidos (aceptados para un prototipo de secundaria)</h2>
+<div class="caja-riesgo">
+<ul>
+  <li><strong>No probado en el hardware real todavía</strong> — si la webcam de esa notebook específica no coopera con ffmpeg, puede hacer falta ajustar resolución o cuadros por segundo.</li>
+  <li><strong>La notebook tiene que estar prendida, sin suspenderse, y bien apuntada</strong> durante todo el conteo — un detalle de armado del stand, no de software.</li>
+  <li><strong>Segunda credencial (<code>service_role key</code>) en circulación</strong> — mismo modelo de confianza ya aceptado para la Raspberry Pi, simplemente duplicado. Razonable para un prototipo, no para un producto real.</li>
+</ul>
+</div>
+
+<h2>9. Dos formas posibles de hacerlo — sin decidir todavía entre ellas (actualización 2026-09-11)</h2>
+<p>El equipo (Germaioni) planteó una segunda forma de armar la función de cámara, distinta a la de la sección 4 de arriba. <strong>Ninguna de las dos está descartada</strong> — esta sección explica las dos, y lo que hay que entender de Supabase Storage para poder elegir con criterio. No se recomienda ninguna acá a propósito.</p>
+
+<h3>9.1 — Camino A: clips cortos (el de la sección 4)</h3>
+<p>Ya explicado arriba en detalle. En resumen: la notebook graba todo el conteo, y al finalizar corta con ffmpeg un clip de 2-3 segundos por cada lectura. Se suben muchos archivos chicos a Supabase Storage, y cada lectura queda con su propio <code>clip_url</code> apuntando a su clip individual.</p>
+
+<h3>9.2 — Camino B: un video completo, con texto superpuesto y salto directo a un segundo (propuesta nueva del equipo)</h3>
+<p>La idea, tal como la planteó Germaioni: no se corta nada. Se sigue un solo video de punta a punta, y:</p>
+<ul>
+  <li>Por cada lectura, se le superpone un texto sobre el video (a la izquierda de la imagen) con el UID del animal, que aparece solo durante el momento exacto en que ese animal pasó — un cartel que entra y sale en el instante justo. Técnicamente esto se logra con el filtro <code>drawtext</code> de ffmpeg, activado con una condición de tiempo (<code>enable='between(t,inicio,fin)'</code>) en vez de cortar el archivo.</li>
+  <li>Por cada lectura, se guarda el <strong>segundo exacto</strong> en el que pasó ese animal — un número, no un archivo nuevo.</li>
+  <li>En la app, en vez de un botón que abre un clip aparte, hay un link que abre <strong>el mismo video de siempre</strong> pero arranca reproduciendo directo desde ese segundo — el mismo concepto que un timestamp de YouTube: tocás el comentario con el minuto marcado, y el video salta ahí solo, sin descargar nada nuevo.</li>
+  <li>Técnicamente, esto se arma con <code>VideoPlayerController.seekTo(Duration(seconds: segundo))</code> en el paquete <code>video_player</code> de Flutter, después de cargar el video una sola vez.</li>
+</ul>
+
+<h3>9.3 — Supabase Storage a fondo (para entender el compromiso real de cada camino)</h3>
+<p><strong>Qué es:</strong> un servicio de almacenamiento de archivos (fotos, videos, PDFs, cualquier binario) integrado a Supabase, organizado en "buckets" — carpetas de primer nivel. Cada archivo que se sube ahí queda con una URL propia para descargarlo o mostrarlo desde la app, igual que ya se usa para el APK en GitHub Releases, pero del lado de Supabase.</p>
+<p><strong>Cómo limita el plan gratis</strong> (verificado por búsqueda real al momento de decidir la sección 4, no son números de memoria):</p>
+<table>
+  <tr><th>Límite</th><th>Qué significa</th></tr>
+  <tr><td><strong>1 GB de almacenamiento total</strong></td><td>La suma de TODOS los archivos que haya subidos en la cuenta, acumulado, no se resetea nunca solo.</td></tr>
+  <tr><td><strong>50 MB por archivo individual</strong></td><td>Sin importar cuánto espacio libre quede del 1GB total, un solo archivo no puede pesar más que esto en el plan gratis. Es un tope por archivo, no por cuenta.</td></tr>
+  <tr><td><strong>Egress (tráfico de descarga/reproducción)</strong></td><td>5 GB/mes sin caché + otros 5 GB con caché — se gasta cada vez que alguien mira o descarga algo desde la app.</td></tr>
+</table>
+<p><strong>Qué implica esto para cada camino, en números concretos:</strong></p>
+<ul>
+  <li><strong>Camino A (clips cortos):</strong> cada clip pesa aproximadamente 0.3-0.8 MB. Entran más de 1000 clips en el 1GB total, y ninguno se acerca ni de lejos al límite de 50MB por archivo. Margen muy amplio.</li>
+  <li><strong>Camino B (video completo):</strong> un video de varios minutos, incluso a resolución baja (640x480), puede pesar fácilmente varias decenas o cientos de MB según cuánto dure el conteo. <strong>Acá es donde puede chocar directo con el límite de 50MB por archivo</strong> — si el conteo dura varios minutos, es probable que el video completo directamente no se pueda subir a Supabase Storage en el plan gratis, sin importar cuánto espacio total quede disponible. Además, cada vez que alguien reproduce ese video completo desde la app (aunque solo quiera ver 3 segundos, saltando a un punto puntual) puede llegar a descargar bastante más datos que con un clip cortito, dependiendo de cómo maneje el reproductor el streaming del archivo.</li>
+</ul>
+<p><strong>Esto no es un "no se puede" del Camino B — es un "hay que resolverlo" si se lo elige.</strong> Algunas opciones que existen para eso (mencionadas acá solo para que se sepa que hay caminos, sin recomendar ninguna en particular): grabar a resolución/bitrate bajo para que el archivo final pese menos; usar otro servicio de almacenamiento de video con otros límites en vez de Supabase Storage para este archivo puntual; o encontrar alguna forma de acortar/comprimir el video antes de subirlo.</p>
+
+<h3>9.4 — Comparación lado a lado</h3>
+<table>
+  <tr><th></th><th>Camino A — clips cortos</th><th>Camino B — video completo + salto</th></tr>
+  <tr><td><strong>Qué se sube a Storage</strong></td><td>Muchos archivos chicos (uno por lectura)</td><td>Un solo archivo grande (uno por conteo)</td></tr>
+  <tr><td><strong>Riesgo de chocar con el límite de 50MB</strong></td><td>Prácticamente nulo</td><td>Real, depende de la duración del conteo</td></tr>
+  <tr><td><strong>Qué ve el productor</strong></td><td>Un clip cortito, aislado, de ese animal puntual</td><td>El video completo del conteo, con la opción de saltar al momento de cada animal</td></tr>
+  <tr><td><strong>Contexto alrededor de cada lectura</strong></td><td>No — el clip empieza y termina justo en ese animal</td><td>Sí — se puede seguir viendo lo que pasó antes/después dentro del mismo video</td></tr>
+  <tr><td><strong>Qué hay que construir</strong></td><td>Lógica de corte con ffmpeg por cada lectura + subida de varios archivos</td><td>Lógica de superponer texto en el momento justo + guardar un número (segundo) por lectura, un solo archivo para subir</td></tr>
+</table>
+
+<div class="footer">CowControl — documento generado a partir del análisis de arquitectura del 2026-09-01 (documentacion.md/cosas_pendientes.md, ítem 26), actualizado el 2026-09-11 con la propuesta del equipo sobre el Camino B. Nada de esto está implementado todavía — ninguno de los dos caminos fue decidido como definitivo.</div>
+
+</body>
+</html>

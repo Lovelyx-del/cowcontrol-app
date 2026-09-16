@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es-419">
+<head>
+<meta charset="UTF-8">
+<title>CowControl — Guía de Repaso</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #4A2E1E;
+    background: #FAF3E8;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .marca { font-size: 12px; color: #C77C3B; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  h1 { font-size: 23px; margin: 0 0 6px; color: #4A2E1E; }
+  .subtitulo { font-size: 12.5px; color: #6F4A31; margin-bottom: 20px; }
+  h2 {
+    font-size: 15.5px; color: #4A2E1E; background: #F1E4D0; padding: 7px 12px;
+    border-left: 5px solid #C77C3B; border-radius: 4px; margin-top: 24px; margin-bottom: 10px;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 13px; color: #6F4A31; margin: 14px 0 5px; page-break-after: avoid; }
+  p { margin: 5px 0; }
+  code {
+    background: #ECE0CC; padding: 1px 5px; border-radius: 3px;
+    font-family: "Consolas", "Courier New", monospace; font-size: 11.5px;
+  }
+  pre {
+    background: #2E2116; color: #F1E4D0; padding: 9px 13px; border-radius: 6px;
+    overflow-x: auto; font-size: 11px; line-height: 1.5; page-break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  .comando {
+    background: #F1E4D0; border-radius: 6px; padding: 8px 12px; margin: 7px 0;
+    page-break-inside: avoid;
+  }
+  .comando code { background: #2E2116; color: #F1E4D0; padding: 3px 8px; font-size: 11.5px; }
+  .comando .explicacion { margin-top: 4px; font-size: 12px; }
+  .pregunta {
+    background: #F1E4D0; border-radius: 6px; padding: 10px 14px; margin-bottom: 9px;
+    page-break-inside: avoid;
+  }
+  .pregunta .q { font-weight: 700; color: #4A2E1E; margin-bottom: 4px; }
+  .pregunta .a { color: #4A2E1E; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 11.5px; }
+  th, td { border: 1px solid #D9C6A8; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #F1E4D0; }
+  .nota {
+    background: #F6E7DD; border: 1px solid #C77C3B; border-radius: 6px;
+    padding: 8px 12px; margin: 8px 0; font-size: 12px; page-break-inside: avoid;
+  }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #D9C6A8; font-size: 10.5px; color: #8A6A4E; }
+  ul, ol { margin: 5px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .caja-negra { background: #2E2116; color: #F1E4D0; padding: 10px 14px; border-radius: 6px; font-family: "Consolas", monospace; font-size: 10.5px; white-space: pre; overflow-x: auto; page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="marca">COWCONTROL — GUÍA DE REPASO</div>
+<h1>Repaso para la revisión: Flutter/Dart, comandos, y los cambios más importantes</h1>
+<div class="subtitulo">No es un tutorial de "cómo hacer tal cosa" — es un repaso de qué es cada pieza y por qué está, para poder explicarlo si preguntan. Generado 2026-09-01.</div>
+
+<h2>1. Flutter y Dart, explicado simple</h2>
+<p><strong>Flutter</strong> es un framework de Google para escribir una app con un solo código que compila a Android, iOS, web y escritorio. CowControl apunta a Android + iOS (iOS todavía pendiente, hace falta una Mac con Xcode).</p>
+<p><strong>Dart</strong> es el lenguaje de programación con el que se escribe el código de Flutter (también de Google). Es tipado — cada variable declara qué tipo de dato guarda (<code>String</code>, <code>int</code>, <code>bool</code>, etc.) — y orientado a objetos, organizado en clases.</p>
+<p><strong>Widget:</strong> en Flutter, todo lo que se ve en pantalla es un "widget" — un botón, un texto, una lista, hasta una pantalla entera. Se arman anidando widgets unos dentro de otros, como cajas dentro de cajas.</p>
+<p><strong>StatelessWidget vs. StatefulWidget:</strong> un <em>Stateless</em> no cambia solo — una vez dibujado, queda así hasta que el widget padre lo reconstruye. Un <em>Stateful</em> sí puede cambiar con el tiempo (ej: la pantalla de conteo, que se actualiza cada vez que llega una lectura nueva) — internamente llama a <code>setState()</code> para avisarle a Flutter "algo cambió, volveme a dibujar".</p>
+<p><strong><code>pubspec.yaml</code>:</strong> el archivo que lista qué paquetes (librerías) usa el proyecto, con su versión — el equivalente en Flutter a un <code>package.json</code> (JavaScript) o <code>requirements.txt</code> (Python). Los paquetes vienen de <strong>pub.dev</strong>, el repositorio oficial de Dart/Flutter (como npm para JavaScript) — no hay que "instalar" nada a mano, alcanza con escribir el nombre y la versión en <code>pubspec.yaml</code> y correr <code>flutter pub get</code>.</p>
+<table>
+  <tr><th>Paquete</th><th>Para qué se usa</th></tr>
+  <tr><td><code>supabase_flutter</code></td><td>Cliente oficial de Supabase — login, base de datos, tiempo real, todo en uno.</td></tr>
+  <tr><td><code>flutter_dotenv</code></td><td>Lee el archivo <code>.env</code> con las credenciales (URL y clave de Supabase).</td></tr>
+  <tr><td><code>flutter_launcher_icons</code></td><td>Genera el ícono de la app (todos los tamaños) a partir de un solo PNG.</td></tr>
+  <tr><td><code>flutter_lints</code></td><td>Reglas de estilo/errores comunes que usa <code>flutter analyze</code>.</td></tr>
+</table>
+<p><strong><code>async</code>/<code>await</code> y <code>Future</code>:</strong> pedirle datos a Supabase tarda (viaja por internet), así que esas operaciones son "asíncronas" — el código no se congela esperando. <code>Future&lt;Animal&gt;</code> significa "en algún momento va a haber un Animal disponible, todavía no". <code>await</code> le dice a Dart "esperá acá a que esto termine antes de seguir", sin trabar el resto de la app mientras tanto.</p>
+
+<h2>2. Comandos de terminal más importantes</h2>
+
+<div class="comando"><code>flutter pub get</code>
+<div class="explicacion">Descarga/instala los paquetes listados en <code>pubspec.yaml</code>. Se corre después de agregar un paquete nuevo o de bajar el proyecto en una PC nueva.</div></div>
+
+<div class="comando"><code>flutter analyze</code>
+<div class="explicacion">Revisa todo el código en busca de errores y problemas de estilo, sin ejecutar la app. Es el primer chequeo después de cualquier cambio — tiene que dar <strong>"No issues found!"</strong>.</div></div>
+
+<div class="comando"><code>flutter run -d &lt;dispositivo&gt;</code>
+<div class="explicacion">Compila y corre la app en un dispositivo conectado (celular por USB) o un emulador, en modo "debug". Con <strong>hot reload</strong>: al apretar <code>r</code> en la terminal, aplica los cambios de código al instante sin perder el estado de la app en pantalla. <code>R</code> (mayúscula) es <strong>hot restart</strong>: reinicia la app de cero, pero sin tener que recompilar todo desde el principio.</div></div>
+
+<div class="comando"><code>flutter emulators --launch Pixel_CowControl</code>
+<div class="explicacion">Prende el emulador de Android que se usa para probar la app sin un celular físico.</div></div>
+
+<div class="comando"><code>flutter devices</code>
+<div class="explicacion">Lista los dispositivos/emuladores conectados en ese momento.</div></div>
+
+<div class="comando"><code>flutter build apk --release</code>
+<div class="explicacion">Genera el instalador final de Android (<code>.apk</code>) en modo release — optimizado, es el que se comparte con el equipo o se sube a un celular real. Queda en <code>build\app\outputs\flutter-apk\app-release.apk</code>.</div></div>
+
+<div class="comando"><code>flutter doctor</code>
+<div class="explicacion">Diagnóstico del entorno de desarrollo — chequea si el SDK de Android, las licencias, etc. están bien instalados.</div></div>
+
+<div class="comando"><code>adb install -r app-release.apk</code>
+<div class="explicacion">Instala un APK directo en un celular conectado por USB (con Depuración USB activada), sin pasar por WhatsApp/Drive. Útil cuando la conexión de <code>flutter run</code> es inestable con algún celular en particular.</div></div>
+
+<h3>Git (control de versiones)</h3>
+<table>
+  <tr><th>Comando</th><th>Para qué</th></tr>
+  <tr><td><code>git init</code></td><td>Empieza a llevar el historial de cambios de una carpeta.</td></tr>
+  <tr><td><code>git add &lt;archivo&gt;</code></td><td>Marca un archivo para incluir en el próximo commit.</td></tr>
+  <tr><td><code>git commit -m "..."</code></td><td>Guarda una "foto" del proyecto en ese momento, con un mensaje explicando qué cambió.</td></tr>
+  <tr><td><code>git push</code></td><td>Sube los commits nuevos al repositorio de GitHub.</td></tr>
+  <tr><td><code>git clone &lt;url&gt;</code></td><td>Descarga una copia completa del proyecto (con todo su historial) desde GitHub.</td></tr>
+</table>
+
+<h2>3. Estructura del código (carpeta <code>lib/</code>)</h2>
+<div class="caja-negra">lib/
+├── main.dart              → arranca la app, inicializa Supabase
+├── theme/                 → paleta de colores de toda la app
+├── models/                → Animal, Campo, Lectura, Vacuna
+├── services/              → hablan con Supabase (una clase por tema)
+├── screens/                → cada pantalla
+└── widgets/                → piezas reutilizables (tarjeta de animal, ícono)</div>
+<ul>
+  <li><strong><code>models/</code></strong> — clases que representan los datos que vienen de Supabase. Cada una tiene un método <code>fromMap()</code> que convierte la respuesta cruda (un <code>Map</code>, básicamente un JSON) en un objeto Dart con el que el resto del código trabaja cómodo.</li>
+  <li><strong><code>services/</code></strong> — la capa que efectivamente habla con Supabase (<code>AuthService</code>, <code>CamposService</code>, <code>AnimalesService</code>, <code>LecturasService</code>, <code>VacunasService</code>, <code>ConteosService</code>). Las pantallas nunca hablan directo con Supabase, siempre pasan por un service — si el día de mañana cambia cómo se pide un dato, solo hay que tocar un lugar.</li>
+  <li><strong><code>screens/</code></strong> — cada pantalla: login, selector de campo, planilla general, conteo en vivo, ficha de animal, historial, fertilidad, vacunas, observaciones.</li>
+  <li><strong><code>widgets/</code></strong> — piezas chicas reutilizadas entre pantallas.</li>
+</ul>
+
+<h2>4. Los cambios más importantes hechos en el proyecto</h2>
+<ul>
+  <li><strong>Multi-tenant con Auth + RLS:</strong> cada productor tiene su cuenta y solo ve sus propios campos/animales (detalle en la sección 5).</li>
+  <li><strong><code>fertilidad</code> reemplazó a "condición corporal":</strong> decisión de producto — <code>fertilidad</code> sí está en el mockup original.</li>
+  <li><strong>Pantalla 4 (ficha del animal) rediseñada</strong> en 3 botones (Fertilidad/Vacunas/Observaciones), cada uno con su propia pantalla — antes estaba todo junto en una sola.</li>
+  <li><strong>Íconos de categoría propios</strong> (vaca/toro/ternero/ternera/vaquillona), generados con IA, en vez de los símbolos genéricos de Flutter.</li>
+  <li><strong>Recuperación de contraseña:</strong> un link de un solo uso al mail que abre una página web (no la app) para poner la contraseña nueva — mismo estándar que usan bancos y apps grandes (nada de "pregunta secreta", eso está obsoleto desde 2017 según NIST).</li>
+  <li><strong>El bug del permiso INTERNET</strong> (buena para contar si preguntan sobre debugging): mes y medio sin poder registrarse/loguearse desde el APK compartido, pero sí andaba con <code>flutter run</code>. Causa: el manifest de Android de <em>release</em> nunca declaró el permiso de internet — solo lo tenía el manifest de <em>debug</em>, que Flutter agrega solo y por eso nunca se notó probando en la PC.</li>
+  <li><strong>Se sacó <code>id_animal</code> de <code>datos_lectura</code>:</strong> nunca lo llenaba nadie — el emparejamiento real entre una lectura y un animal es por <code>rfid_uid</code> (el código del tag), no por ese campo.</li>
+  <li><strong>La tabla <code>conteos</code> ahora la escribe la app:</strong> al iniciar/pausar/reanudar/finalizar un conteo desde la Pantalla 3, queda una fila en Supabase (estado <code>en_curso</code>/<code>pausado</code>/<code>finalizado</code>) que la Raspberry Pi puede consultar para saber a qué conteo mandarle las lecturas que va leyendo.</li>
+</ul>
+
+<h2>5. Supabase y SQL — lo esencial</h2>
+<p><strong>Qué es Supabase:</strong> una base de datos Postgres gestionada, con autenticación, API REST automática, tiempo real (websockets) y almacenamiento de archivos, todo en un solo servicio — hace de "servidor" del proyecto sin tener que programar un backend propio desde cero.</p>
+<p><strong>RLS (Row Level Security):</strong> reglas que Postgres aplica automáticamente para decidir qué <strong>filas</strong> puede ver o tocar cada usuario logueado. En CowControl, cada política dice básicamente "solo si el campo de esta fila pertenece al productor logueado ahora mismo".</p>
+<pre><code>CREATE POLICY "solo animales de su campo" ON datos_animales
+  FOR ALL TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM datos_campo
+    WHERE datos_campo.id = datos_animales.campo_id
+      AND datos_campo.productor_id = auth.uid()
+  ));</code></pre>
+<p style="margin-top:-4px"><em>En criollo: "dejá hacer cualquier operación sobre una fila de datos_animales solo si existe un campo, dueño de esa fila, cuyo productor_id sea el mismo que el usuario logueado ahora mismo".</em></p>
+<p><strong>GRANT:</strong> una capa distinta y más básica que RLS — decide si el rol <code>authenticated</code> puede siquiera <em>intentar</em> leer/escribir esa tabla, antes de que RLS entre a evaluar nada. Bug real que pasó: faltaba el GRANT en las 4 tablas originales (nadie podía leer nada, error 42501 "permission denied") aunque las políticas RLS estaban perfectas — son dos capas separadas, hacen falta las dos.</p>
+<p><strong><code>service_role key</code> vs. <code>anon key</code>:</strong> la Raspberry Pi usa la <code>service_role key</code>, que se salta RLS y GRANT a propósito (no puede "loguearse" como un usuario). La app usa la <code>anon key</code>, que sí respeta RLS — la <code>anon key</code> no es secreta, está pensada para ir en código público; lo que protege los datos de verdad es RLS del lado del servidor.</p>
+<h3>Migraciones SQL más importantes que se corrieron</h3>
+<table>
+  <tr><th>Qué</th><th>Resumen</th></tr>
+  <tr><td>Multi-tenant</td><td><code>productor_id</code> en <code>datos_campo</code> + políticas RLS en las 4 tablas originales.</td></tr>
+  <tr><td>Condición corporal → fertilidad</td><td><code>ALTER TABLE</code> para sacar una columna y agregar otra con <code>CHECK</code> de valores fijos.</td></tr>
+  <tr><td>GRANT explícito</td><td><code>GRANT SELECT, INSERT, UPDATE, DELETE</code> en las 4 tablas para el rol <code>authenticated</code>.</td></tr>
+  <tr><td>Tabla <code>conteos</code></td><td><code>campo_id</code>, GRANT, y política RLS agregados — la tabla la había creado un compañero, faltaban esas 3 piezas.</td></tr>
+  <tr><td>Baja de <code>id_animal</code></td><td><code>ALTER TABLE datos_lectura DROP COLUMN id_animal</code> — columna sin usar.</td></tr>
+</table>
+
+<h2>6. Preguntas que te pueden hacer (respuestas cortas)</h2>
+
+<div class="pregunta"><div class="q">¿Por qué Flutter?</div><div class="a">Un solo código compila a Android y iOS (las dos plataformas que pide el proyecto), sin mantener dos apps separadas escritas en lenguajes distintos.</div></div>
+
+<div class="pregunta"><div class="q">¿Por qué Supabase y no un servidor propio en la Raspberry Pi?</div><div class="a">Supabase ya resuelve base de datos, autenticación, API y tiempo real de forma gestionada y gratuita para este tamaño de proyecto. Armar un servidor propio en la Raspberry Pi habría significado programar todo eso desde cero, y además la Pi tiene una tarea crítica (leer los tags) que no conviene arriesgar sumándole más carga.</div></div>
+
+<div class="pregunta"><div class="q">¿Por qué 4 tablas (<code>datos_campo</code>, <code>datos_animales</code>, <code>datos_lectura</code>, <code>datos_vacuna</code>) y no menos?</div><div class="a">Representan 4 cosas distintas que no tiene sentido mezclar: un establecimiento, un animal, una lectura puntual del lector, y el historial de vacunas de un animal (que puede tener varias en el tiempo). Separarlas es la forma estándar de organizar una base de datos relacional — evita repetir datos y permite que un animal tenga cualquier cantidad de vacunas sin duplicar el resto de sus datos en cada fila.</div></div>
+
+<div class="pregunta"><div class="q">¿Qué pasa si una Raspberry Pi mal configurada escribe en el campo de otro productor?</div><div class="a">Hoy no hay nada de software que lo impida — la <code>service_role key</code> bypassea RLS a propósito para que la Pi pueda insertar sin loguearse. Es un límite real, aceptable para un prototipo de secundaria sin actores externos hostiles. En un producto real, cada Raspberry física tendría su propia credencial, atada del lado del servidor a un único <code>campo_id</code> permitido.</div></div>
+
+<div class="pregunta"><div class="q">¿Cómo instalás o actualizás un paquete de Flutter?</div><div class="a">Se agrega el nombre y la versión en <code>pubspec.yaml</code>, dentro de <code>dependencies:</code>, y se corre <code>flutter pub get</code> — Flutter lo descarga solo desde pub.dev. No hace falta instalar nada a mano ni buscar un instalador.</div></div>
+
+<div class="pregunta"><div class="q">¿Y para iOS?</div><div class="a">Hace falta sin excepción una Mac con Xcode — es un requisito de Apple, no se puede compilar para iPhone desde Windows. Está identificado y con plan, solo falta el acceso al hardware.</div></div>
+
+<div class="nota">Para el detalle línea por línea de cada archivo, protocolos de comunicación, y el diccionario de campos completo, está <code>explicacion_cada_funcion.pdf</code> en esta misma carpeta — este documento es un repaso rápido, no lo reemplaza.</div>
+
+<div class="footer">CowControl — guía de repaso generada el 2026-09-01 a partir de todo el historial documentado en prompts.md, cosas_pendientes.md y base_datos.md.</div>
+
+</body>
+</html>

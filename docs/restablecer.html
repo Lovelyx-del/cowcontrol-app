@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es-419">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CowControl</title>
+<!--
+  Pagina de destino del link de "restablecer contraseña" de Supabase Auth
+  (Authentication -> resetPasswordForEmail, disparado desde el boton
+  "Olvidaste tu contraseña?" de login_screen.dart / informacion_personal_screen.dart).
+  No es parte de la app Flutter -- es una pagina web aparte, mas simple que
+  armar deep links Android/iOS para esto. El SDK de Supabase para JS detecta
+  solo el token que Supabase agrega a la URL del link y arma una sesion
+  temporal de "recuperacion", suficiente para pedir updateUser() una sola vez.
+
+  PENDIENTE conocido (ver cosas_pendientes.md item 21): esta pagina se queda
+  trabada en "Verificando el link..." por el choque de flujo PKCE entre la
+  app (donde se pide el link) y el navegador (donde se abre) -- no es un bug
+  de este HTML/CSS, es de arquitectura. Sin aplicar el fix todavia.
+
+  Colores calcados de lib/theme/app_theme.dart (AppColors), version del
+  2026-09-14. Es HTML estatico, no lee el tema de Flutter -- si se cambia la
+  paleta de la app, hay que actualizar esta pagina y confirmacion.html a
+  mano tambien.
+-->
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: #FAF3E8;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #422100;
+  }
+  .card {
+    max-width: 420px;
+    width: 100%;
+    background: #F1E4D0;
+    border: 1px solid #964B00;
+    border-radius: 20px;
+    padding: 36px 28px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(66, 33, 0, 0.15);
+  }
+  .pata { font-size: 32px; line-height: 1; margin-bottom: 4px; }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 8px;
+    color: #422100;
+    font-weight: 700;
+  }
+  p {
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0 0 20px;
+    color: #964B00;
+  }
+  .marca {
+    font-size: 20px;
+    font-weight: 700;
+    color: #964B00;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+  }
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border: 1px solid #964B00;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #fff;
+    color: #422100;
+  }
+  input:focus { outline: 2px solid #B25900; }
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: #964B00;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .regla { font-size: 12px; text-align: left; margin: 2px 0; color: rgba(66, 33, 0, 0.5); }
+  .regla.ok { color: #B25900; }
+  .mensaje { font-size: 14px; margin-top: 14px; }
+  .mensaje.exito { color: #964B00; font-weight: 600; }
+  .mensaje.error { color: #8B4038; }
+  .check {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #964B00;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+  }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="pata">🐾</div>
+    <div class="marca">COWCONTROL</div>
+    <h1 id="titulo">Verificando el link...</h1>
+    <p id="subtitulo">Un momento.</p>
+    <div id="contenido"></div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://jucndmefmewkjalqnrrv.supabase.co";
+  // La "anon key" esta pensada para ir en codigo publico (paginas web, apps
+  // moviles) -- lo que protege los datos es RLS del lado del servidor, no
+  // ocultar esta clave. Es la misma que ya viaja adentro del .apk.
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1Y25kbWVmbWV3a2phbHFucnJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTI0MjksImV4cCI6MjA5NTQ4ODQyOX0.qY0C_ENJqPiIMdPNzQyMyoEmu3iJdLtJZXZmC_wokTc";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const titulo = document.getElementById("titulo");
+  const subtitulo = document.getElementById("subtitulo");
+  const contenido = document.getElementById("contenido");
+
+  function mostrarFormulario() {
+    titulo.textContent = "Elegi tu contraseña nueva";
+    subtitulo.textContent = "Tiene que tener minimo 8 caracteres, con letras y numeros.";
+    contenido.innerHTML = `
+      <input type="password" id="pass1" placeholder="Contraseña nueva" autocomplete="new-password">
+      <input type="password" id="pass2" placeholder="Repetir contraseña" autocomplete="new-password">
+      <div class="regla" id="r1">○ Minimo 8 caracteres</div>
+      <div class="regla" id="r2">○ Al menos una letra</div>
+      <div class="regla" id="r3">○ Al menos un numero</div>
+      <button id="btnGuardar">Guardar contraseña</button>
+      <div class="mensaje" id="mensaje"></div>
+    `;
+    const pass1 = document.getElementById("pass1");
+    const pass2 = document.getElementById("pass2");
+    const r1 = document.getElementById("r1");
+    const r2 = document.getElementById("r2");
+    const r3 = document.getElementById("r3");
+    const mensaje = document.getElementById("mensaje");
+    const btn = document.getElementById("btnGuardar");
+
+    function validar() {
+      const v = pass1.value;
+      const okLen = v.length >= 8;
+      const okLetra = /[A-Za-z]/.test(v);
+      const okNum = /[0-9]/.test(v);
+      r1.textContent = (okLen ? "✓" : "○") + " Minimo 8 caracteres";
+      r1.className = "regla" + (okLen ? " ok" : "");
+      r2.textContent = (okLetra ? "✓" : "○") + " Al menos una letra";
+      r2.className = "regla" + (okLetra ? " ok" : "");
+      r3.textContent = (okNum ? "✓" : "○") + " Al menos un numero";
+      r3.className = "regla" + (okNum ? " ok" : "");
+      return okLen && okLetra && okNum;
+    }
+    pass1.addEventListener("input", validar);
+
+    btn.addEventListener("click", async () => {
+      const okReglas = validar();
+      mensaje.textContent = "";
+      mensaje.className = "mensaje";
+      if (!okReglas) {
+        mensaje.textContent = "La contraseña no cumple los requisitos de arriba.";
+        mensaje.classList.add("error");
+        return;
+      }
+      if (pass1.value !== pass2.value) {
+        mensaje.textContent = "Las dos contraseñas no coinciden.";
+        mensaje.classList.add("error");
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+      const { error } = await supabase.auth.updateUser({ password: pass1.value });
+      if (error) {
+        mensaje.textContent = "No se pudo guardar: " + error.message;
+        mensaje.classList.add("error");
+        btn.disabled = false;
+        btn.textContent = "Guardar contraseña";
+        return;
+      }
+      titulo.textContent = "Contraseña actualizada";
+      subtitulo.textContent = "Ya podes volver a la app CowControl e iniciar sesion con tu contraseña nueva.";
+      contenido.innerHTML = '<div class="check">&#10003;</div>';
+    });
+  }
+
+  function mostrarError() {
+    titulo.textContent = "Este link no es valido";
+    subtitulo.textContent = "Puede haber vencido o ya haberse usado. Volve a la app y toca de nuevo " +
+      "\"Olvidaste tu contraseña?\" para pedir uno nuevo.";
+  }
+
+  let resuelto = false;
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "PASSWORD_RECOVERY" && !resuelto) {
+      resuelto = true;
+      mostrarFormulario();
+    }
+  });
+
+  // Red de seguridad: si el SDK ya trae una sesion valida (algunos navegadores
+  // disparan el evento antes de que este script llegue a escucharlo) mostramos
+  // el formulario igual; si no hay nada despues de unos segundos, es un link
+  // roto o vencido.
+  setTimeout(async () => {
+    if (resuelto) return;
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      resuelto = true;
+      mostrarFormulario();
+    } else {
+      mostrarError();
+    }
+  }, 2500);
+</script>
+</body>
+</html>

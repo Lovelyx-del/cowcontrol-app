@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo de la pantalla de carga (Android 5 a 11) — mismo crema que el
+     fondo de toda la app, sin icono. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/fondo_splash" />
+</layer-list>

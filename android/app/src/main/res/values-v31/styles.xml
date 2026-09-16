@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ (API 31) tiene su propia pantalla de splash a nivel de
+         sistema operativo, separada de windowBackground — sin este archivo,
+         Android mete solo el icono del launcher en una mascara circular
+         propia, que lo recorta mal. Se saca el icono del todo (transparente)
+         y se deja solo el fondo crema de la app. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowSplashScreenBackground">@color/fondo_splash</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

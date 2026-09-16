@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es-419">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CowControl</title>
+<!--
+  Pagina de destino del link de confirmacion de mail de Supabase Auth.
+  Reemplaza al "Site URL" por defecto (localhost:3000), que en un celular
+  tira error de conexion. Supabase ya confirma la cuenta en su propio
+  servidor antes de redirigir aca -- esta pagina solo muestra el aviso,
+  no hace ninguna verificacion propia.
+
+  Colores calcados de lib/theme/app_theme.dart (AppColors), version del
+  2026-09-14. Es HTML estatico, no lee el tema de Flutter -- si se cambia
+  la paleta de la app, hay que actualizar esta pagina y restablecer.html a
+  mano tambien.
+-->
+<style>
+  :root {
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: #FAF3E8;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #422100;
+  }
+  .card {
+    max-width: 420px;
+    width: 100%;
+    background: #F1E4D0;
+    border: 1px solid #964B00;
+    border-radius: 20px;
+    padding: 40px 28px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(66, 33, 0, 0.15);
+  }
+  .pata { font-size: 38px; line-height: 1; margin-bottom: 6px; }
+  .marca {
+    font-size: 22px;
+    font-weight: 700;
+    color: #964B00;
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+  }
+  .check {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: #964B00;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 12px;
+    color: #422100;
+    font-weight: 700;
+  }
+  p {
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+    color: #964B00;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="pata">🐾</div>
+    <div class="marca">COWCONTROL</div>
+    <div class="check">&#10003;</div>
+    <h1>Cuenta confirmada</h1>
+    <p>Ya confirmaste tu cuenta. Volvé a la app CowControl y iniciá sesión con tu email y contraseña.</p>
+  </div>
+</body>
+</html>

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/animal.dart';
 import '../models/campo.dart';
 import '../services/animales_service.dart';
+import '../services/lecturas_service.dart';
+import '../widgets/dialogo_categoria.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animal_card.dart';
 import '../widgets/categoria_badge.dart';
@@ -23,8 +25,10 @@ class PlanillaScreen extends StatefulWidget {
 
 class _PlanillaScreenState extends State<PlanillaScreen> {
   final _animalesService = AnimalesService();
+  final _lecturasService = LecturasService();
   final _busquedaController = TextEditingController();
   late Future<List<Animal>> _futureAnimales;
+  late Future<List<String>> _futureNoRegistrados;
 
   String? _categoriaFiltro;
 
@@ -36,10 +40,11 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     'vaquillona',
   ];
 
-  @override
+    @override
   void initState() {
     super.initState();
     _futureAnimales = _animalesService.traerAnimalesDeCampo(widget.campo.id);
+    _futureNoRegistrados = _lecturasService.traerNoRegistrados(widget.campo.id);
   }
 
   @override
@@ -48,10 +53,30 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     super.dispose();
   }
 
-  Future<void> _recargar() async {
+    Future<void> _recargar() async {
     setState(() {
       _futureAnimales = _animalesService.traerAnimalesDeCampo(widget.campo.id);
+      _futureNoRegistrados = _lecturasService.traerNoRegistrados(widget.campo.id);
     });
+  }
+  
+  Future<void> _eliminarNoRegistrado(String rfidUid) async {
+    await _lecturasService.descartarTag(rfidUid, widget.campo.id);
+    _recargar();
+  }
+
+  Future<void> _agregarNoRegistrado(String rfidUid) async {
+    final categoria = await showDialog<String>(
+      context: context,
+      builder: (_) => const DialogoCategoria(),
+    );
+    if (categoria == null) return;
+    await _animalesService.crearAnimal(
+      rfidUid: rfidUid,
+      campoId: widget.campo.id,
+      categoria: categoria,
+    );
+    _recargar();
   }
 
   List<Animal> _filtrar(List<Animal> animales, String busqueda) {
@@ -230,6 +255,58 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
                 },
               ),
             ),
+          ),
+                    FutureBuilder<List<String>>(
+            future: _futureNoRegistrados,
+            builder: (context, snapshot) {
+              final pendientes = snapshot.data ?? [];
+              if (pendientes.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'No registrados',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.naranjaTostado,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...pendientes.map(
+                      (uid) => Card(
+                        child: ListTile(
+                          title: Text(
+                            uid,
+                            style: const TextStyle(fontFamily: 'monospace'),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: () => _eliminarNoRegistrado(uid),
+                                child: const Text(
+                                  'Eliminar',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => _agregarNoRegistrado(uid),
+                                child: const Text(
+                                  'Añadir',
+                                  style: TextStyle(color: AppColors.verdeVivo),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
           SafeArea(
             top: false,

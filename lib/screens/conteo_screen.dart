@@ -9,6 +9,7 @@ import '../services/conteos_service.dart';
 import '../services/lecturas_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animal_card.dart';
+import '../widgets/dialogo_categoria.dart';
 import 'detalle_animal_screen.dart';
 
 /// Pantalla 3 — conteo en vivo. Escucha datos_lectura por Supabase Realtime y
@@ -79,7 +80,7 @@ class _ConteoScreenState extends State<ConteoScreen> {
   Future<void> _asignarCategoria(String rfidUid) async {
     final categoria = await showDialog<String>(
       context: context,
-      builder: (_) => const _DialogoCategoria(),
+      builder: (_) => const DialogoCategoria(),
     );
     if (categoria == null) return;
     final nuevoAnimal = await _animalesService.crearAnimal(
@@ -249,35 +250,6 @@ class _ConteoScreenState extends State<ConteoScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Dialogo simple para elegir la categoria de un animal recien detectado
-/// (tag que no coincidia con ningun animal ya cargado).
-class _DialogoCategoria extends StatelessWidget {
-  const _DialogoCategoria();
-
-  static const _categorias = [
-    'vaca',
-    'toro',
-    'ternero',
-    'ternera',
-    'vaquillona',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return SimpleDialog(
-      title: const Text('¿Qué categoría es?'),
-      children: _categorias
-          .map(
-            (categoria) => SimpleDialogOption(
-              onPressed: () => Navigator.of(context).pop(categoria),
-              child: Text(categoria[0].toUpperCase() + categoria.substring(1)),
-            ),
-          )
-          .toList(),
     );
   }
 }

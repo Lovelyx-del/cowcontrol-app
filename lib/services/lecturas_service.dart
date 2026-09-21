@@ -52,4 +52,47 @@ class LecturasService {
   Future<void> dejarDeEscuchar(RealtimeChannel canal) {
     return _client.removeChannel(canal);
   }
-}
+  
+  /// UIDs leídos en el campo que no coinciden con ningún animal cargado y
+  /// que el productor todavía no descartó — para la sección "no registrados"
+  /// de Pantalla 2, después de cerrar el conteo.
+  Future<List<String>> traerNoRegistrados(String campoId) async {
+    final lecturas = await _client
+        .from('datos_lectura')
+        .select('rfid_uid')
+        .eq('campo_id', campoId);
+    final uidsLeidos = (lecturas as List)
+        .map((fila) => fila['rfid_uid'] as String)
+        .toSet();
+
+    final animales = await _client
+        .from('datos_animales')
+        .select('rfid_uid')
+        .eq('campo_id', campoId);
+    final uidsAnimales = (animales as List)
+        .map((fila) => fila['rfid_uid'] as String)
+        .toSet();
+
+    final descartados = await _client
+        .from('tags_descartados')
+        .select('rfid_uid')
+        .eq('campo_id', campoId);
+    final uidsDescartados = (descartados as List)
+        .map((fila) => fila['rfid_uid'] as String)
+        .toSet();
+
+    return uidsLeidos
+        .difference(uidsAnimales)
+        .difference(uidsDescartados)
+        .toList();
+  }
+
+  /// El productor decidió que ese tag no corresponde a un animal (lectura
+  /// falsa, tag ajeno, etc.). No borra el historial, solo lo saca de la
+  /// lista de pendientes.
+  Future<void> descartarTag(String rfidUid, String campoId) async {
+    await _client.from('tags_descartados').upsert({
+      'rfid_uid': rfidUid,
+      'campo_id': campoId,
+    });
+  }

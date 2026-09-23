@@ -28,7 +28,7 @@ class AnimalesService {
   }
 
   /// Solo actualiza condicion corporal — las observaciones se manejan aparte
-  /// (ver ObservacionesService), ya no pisan datos_animales.observaciones.
+  /// (ver ObservacionesService), no pisan datos_animales.observaciones.
   Future<void> actualizarAnimal({
     required String animalId,
     String? condicionCorporal,
@@ -43,20 +43,23 @@ class AnimalesService {
   /// no coincidia con ninguno ya cargado — el productor le eligio la
   /// categoria viendo el animal pasar en el conteo en vivo (Pantalla 3).
   Future<Animal> crearAnimal({
-    required String rfidUid,
-    required String campoId,
-    required String categoria,
-  }) async {
-    final fila = await _client
-        .from('datos_animales')
-        .insert({
-          'rfid_uid': rfidUid,
-          'campo_id': campoId,
-          'sexo': categoria,
-          'estado_vital': 'vivo',
-        })
-        .select()
-        .single();
-    return Animal.fromMap(fila);
-  }
+  required String rfidUid,
+  required String campoId,
+  required String categoria,
+  required String animalId,
+  String? apodo,
+}) async {
+  final fila = await _client
+      .from('datos_animales')
+      .insert({
+        'rfid_uid': rfidUid,
+        'campo_id': campoId,
+        'sexo': categoria,
+        'estado_vital': 'vivo',
+        'animal_id': animalId,
+        'apodo': apodo,
+      })
+      .select()
+      .single();
+  return Animal.fromMap(fila);
 }

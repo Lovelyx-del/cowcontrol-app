@@ -4,7 +4,7 @@ import '../models/animal.dart';
 import '../models/campo.dart';
 import '../services/animales_service.dart';
 import '../services/lecturas_service.dart';
-import '../widgets/dialogo_categoria.dart';
+import '../widgets/dialogo_alta_animal.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animal_card.dart';
 import '../widgets/categoria_badge.dart';

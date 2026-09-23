@@ -72,7 +72,7 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
                 CategoriaBadge(categoria: _animal.categoria),
                 const SizedBox(width: 8),
                 Text(
-                  _animal.rfidUid,
+                  _animal.nombreMostrado,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',

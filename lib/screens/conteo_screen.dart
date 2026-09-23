@@ -9,7 +9,7 @@ import '../services/conteos_service.dart';
 import '../services/lecturas_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animal_card.dart';
-import '../widgets/dialogo_categoria.dart';
+import '../widgets/dialogo_alta_animal.dart';
 import 'detalle_animal_screen.dart';
 
 /// Pantalla 3 — conteo en vivo. Escucha datos_lectura por Supabase Realtime y

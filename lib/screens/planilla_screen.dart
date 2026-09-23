@@ -81,17 +81,16 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
   _recargar();
 }
 
-  List<Animal> _filtrar(List<Animal> animales, String busqueda) {
+    List<Animal> _filtrar(List<Animal> animales, String busqueda) {
     return animales.where((animal) {
       final coincideBusqueda =
           busqueda.isEmpty ||
-          animal.rfidUid.toLowerCase().contains(busqueda.toLowerCase());
+          animal.animalId.toLowerCase().contains(busqueda.toLowerCase());
       final coincideCategoria =
           _categoriaFiltro == null || animal.categoria == _categoriaFiltro;
       return coincideBusqueda && coincideCategoria;
     }).toList();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

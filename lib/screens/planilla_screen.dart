@@ -66,18 +66,20 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
   }
 
   Future<void> _agregarNoRegistrado(String rfidUid) async {
-    final categoria = await showDialog<String>(
-      context: context,
-      builder: (_) => const DialogoCategoria(),
-    );
-    if (categoria == null) return;
-    await _animalesService.crearAnimal(
-      rfidUid: rfidUid,
-      campoId: widget.campo.id,
-      categoria: categoria,
-    );
-    _recargar();
-  }
+  final datos = await showDialog<DatosAltaAnimal>(
+    context: context,
+    builder: (_) => const DialogoAltaAnimal(),
+  );
+  if (datos == null) return;
+  await _animalesService.crearAnimal(
+    rfidUid: rfidUid,
+    campoId: widget.campo.id,
+    categoria: datos.categoria,
+    animalId: datos.animalId,
+    apodo: datos.apodo,
+  );
+  _recargar();
+}
 
   List<Animal> _filtrar(List<Animal> animales, String busqueda) {
     return animales.where((animal) {

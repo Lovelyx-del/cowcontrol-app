@@ -9,6 +9,8 @@ class Animal {
   final String? categoria;
   final String estadoVital;
   final String? condicionCorporal;
+  final String? estadoFertil;
+  final String? etapaVida;
   final String? observaciones;
   final String campoId;
 
@@ -20,6 +22,8 @@ class Animal {
     this.categoria,
     required this.estadoVital,
     this.condicionCorporal,
+    this.estadoFertil,
+    this.etapaVida,
     this.observaciones,
     required this.campoId,
   });
@@ -38,18 +42,23 @@ class Animal {
       categoria: map['sexo'] as String?,
       estadoVital: map['estado_vital'] as String? ?? 'vivo',
       condicionCorporal: map['condicion_corporal'] as String?,
+      estadoFertil: map['estado_fertil'] as String?,
+      etapaVida: map['etapa_vida'] as String?,
       observaciones: map['observaciones'] as String?,
       campoId: map['campo_id'] as String,
     );
   }
 
   /// Copia el animal reemplazando solo los campos que edita el productor a
-  /// mano (condicion corporal, observaciones) — para actualizar la Pantalla 4
-  /// apenas se guarda, sin tener que volver a pedirle el animal a Supabase.
-  /// Usa un objeto "no tocado" en vez de `??` para poder distinguir "dejar
-  /// como estaba" de "borrar a proposito" (ej: vaciar las observaciones).
- Animal copyWith({
+  /// mano (condicion corporal, estado fertil, etapa de vida, observaciones) —
+  /// para actualizar la Pantalla 4 apenas se guarda, sin tener que volver a
+  /// pedirle el animal a Supabase. Usa un objeto "no tocado" en vez de `??`
+  /// para poder distinguir "dejar como estaba" de "borrar a proposito" (ej:
+  /// vaciar las observaciones).
+  Animal copyWith({
     Object? condicionCorporal = _noTocado,
+    Object? estadoFertil = _noTocado,
+    Object? etapaVida = _noTocado,
     Object? observaciones = _noTocado,
   }) {
     return Animal(
@@ -62,6 +71,12 @@ class Animal {
       condicionCorporal: identical(condicionCorporal, _noTocado)
           ? this.condicionCorporal
           : condicionCorporal as String?,
+      estadoFertil: identical(estadoFertil, _noTocado)
+          ? this.estadoFertil
+          : estadoFertil as String?,
+      etapaVida: identical(etapaVida, _noTocado)
+          ? this.etapaVida
+          : etapaVida as String?,
       observaciones: identical(observaciones, _noTocado)
           ? this.observaciones
           : observaciones as String?,

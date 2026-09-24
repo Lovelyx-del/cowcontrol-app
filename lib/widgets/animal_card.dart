@@ -46,7 +46,7 @@ class AnimalCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  animal.rfidUid,
+                  animal.nombreMostrado,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
@@ -78,7 +78,7 @@ class AnimalCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  animal.rfidUid,
+                  animal.nombreMostrado,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',

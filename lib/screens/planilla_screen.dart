@@ -40,7 +40,7 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     'vaquillona',
   ];
 
-    @override
+  @override
   void initState() {
     super.initState();
     _futureAnimales = _animalesService.traerAnimalesDeCampo(widget.campo.id);
@@ -53,35 +53,36 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     super.dispose();
   }
 
-    Future<void> _recargar() async {
+  Future<void> _recargar() async {
     setState(() {
       _futureAnimales = _animalesService.traerAnimalesDeCampo(widget.campo.id);
       _futureNoRegistrados = _lecturasService.traerNoRegistrados(widget.campo.id);
     });
   }
-  
+
   Future<void> _eliminarNoRegistrado(String rfidUid) async {
     await _lecturasService.descartarTag(rfidUid, widget.campo.id);
     _recargar();
   }
 
   Future<void> _agregarNoRegistrado(String rfidUid) async {
-  final datos = await showDialog<DatosAltaAnimal>(
-    context: context,
-    builder: (_) => const DialogoAltaAnimal(),
-  );
-  if (datos == null) return;
-  await _animalesService.crearAnimal(
-    rfidUid: rfidUid,
-    campoId: widget.campo.id,
-    categoria: datos.categoria,
-    animalId: datos.animalId,
-    apodo: datos.apodo,
-  );
-  _recargar();
-}
+    final datos = await showDialog<DatosAltaAnimal>(
+      context: context,
+      builder: (_) => const DialogoAltaAnimal(),
+    );
+    if (datos == null) return;
+    await _animalesService.crearAnimal(
+      rfidUid: rfidUid,
+      campoId: widget.campo.id,
+      categoria: datos.categoria,
+      animalId: datos.animalId,
+      apodo: datos.apodo,
+      raza: datos.raza,
+    );
+    _recargar();
+  }
 
-    List<Animal> _filtrar(List<Animal> animales, String busqueda) {
+  List<Animal> _filtrar(List<Animal> animales, String busqueda) {
     return animales.where((animal) {
       final coincideBusqueda =
           busqueda.isEmpty ||
@@ -91,6 +92,7 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
       return coincideBusqueda && coincideCategoria;
     }).toList();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -257,7 +259,7 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
               ),
             ),
           ),
-                    FutureBuilder<List<String>>(
+          FutureBuilder<List<String>>(
             future: _futureNoRegistrados,
             builder: (context, snapshot) {
               final pendientes = snapshot.data ?? [];

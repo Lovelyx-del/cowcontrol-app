@@ -58,14 +58,15 @@ class AnimalesService {
 
   /// Crea un animal nuevo a partir de un tag que se leyo por primera vez y
   /// no coincidia con ninguno ya cargado — el productor carga el ID propio
-  /// del animal, un apodo opcional y la categoria viendolo pasar en el
-  /// conteo en vivo (Pantalla 3).
+  /// del animal, un apodo opcional, la raza y la categoria viendolo pasar en
+  /// el conteo en vivo (Pantalla 3).
   Future<Animal> crearAnimal({
     required String rfidUid,
     required String campoId,
     required String categoria,
     required String animalId,
     String? apodo,
+    String? raza,
   }) async {
     final fila = await _client
         .from('datos_animales')
@@ -76,19 +77,22 @@ class AnimalesService {
           'estado_vital': 'vivo',
           'animal_id': animalId,
           'apodo': apodo,
+          'raza': raza,
         })
         .select()
         .single();
     return Animal.fromMap(fila);
   }
 
-  /// Actualiza el ID, apodo y categoria de un animal ya existente — se puede
-  /// llamar en cualquier momento desde la ficha del animal (Pantalla 4).
+  /// Actualiza el ID, apodo, categoria y raza de un animal ya existente — se
+  /// puede llamar en cualquier momento desde la ficha del animal
+  /// (Pantalla 4).
   Future<Animal> actualizarDatosAnimal({
     required String id, // fila en datos_animales (animal.id), no animal_id
     required String animalId,
     String? apodo,
     required String categoria,
+    String? raza,
   }) async {
     final fila = await _client
         .from('datos_animales')
@@ -96,6 +100,7 @@ class AnimalesService {
           'animal_id': animalId,
           'apodo': apodo,
           'sexo': categoria,
+          'raza': raza,
         })
         .eq('id', id)
         .select()

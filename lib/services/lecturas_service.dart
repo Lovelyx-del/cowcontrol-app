@@ -96,3 +96,4 @@ class LecturasService {
       'campo_id': campoId,
     });
   }
+}

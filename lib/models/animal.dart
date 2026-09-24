@@ -7,6 +7,7 @@ class Animal {
   final String animalId;
   final String? apodo;
   final String? categoria;
+  final String? raza;
   final String estadoVital;
   final String? condicionCorporal;
   final String? estadoFertil;
@@ -20,6 +21,7 @@ class Animal {
     required this.animalId,
     this.apodo,
     this.categoria,
+    this.raza,
     required this.estadoVital,
     this.condicionCorporal,
     this.estadoFertil,
@@ -40,6 +42,7 @@ class Animal {
       animalId: map['animal_id'] as String,
       apodo: map['apodo'] as String?,
       categoria: map['sexo'] as String?,
+      raza: map['raza'] as String?,
       estadoVital: map['estado_vital'] as String? ?? 'vivo',
       condicionCorporal: map['condicion_corporal'] as String?,
       estadoFertil: map['estado_fertil'] as String?,
@@ -50,15 +53,16 @@ class Animal {
   }
 
   /// Copia el animal reemplazando solo los campos que edita el productor a
-  /// mano (condicion corporal, estado fertil, etapa de vida, observaciones) —
-  /// para actualizar la Pantalla 4 apenas se guarda, sin tener que volver a
-  /// pedirle el animal a Supabase. Usa un objeto "no tocado" en vez de `??`
-  /// para poder distinguir "dejar como estaba" de "borrar a proposito" (ej:
-  /// vaciar las observaciones).
+  /// mano (condicion corporal, estado fertil, etapa de vida, raza,
+  /// observaciones) — para actualizar la Pantalla 4 apenas se guarda, sin
+  /// tener que volver a pedirle el animal a Supabase. Usa un objeto "no
+  /// tocado" en vez de `??` para poder distinguir "dejar como estaba" de
+  /// "borrar a proposito" (ej: vaciar las observaciones).
   Animal copyWith({
     Object? condicionCorporal = _noTocado,
     Object? estadoFertil = _noTocado,
     Object? etapaVida = _noTocado,
+    Object? raza = _noTocado,
     Object? observaciones = _noTocado,
   }) {
     return Animal(
@@ -67,6 +71,7 @@ class Animal {
       animalId: animalId,
       apodo: apodo,
       categoria: categoria,
+      raza: identical(raza, _noTocado) ? this.raza : raza as String?,
       estadoVital: estadoVital,
       condicionCorporal: identical(condicionCorporal, _noTocado)
           ? this.condicionCorporal

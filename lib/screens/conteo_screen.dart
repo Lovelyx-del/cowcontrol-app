@@ -77,25 +77,27 @@ class _ConteoScreenState extends State<ConteoScreen> {
     setState(() => _idsDetectados.add(animalCoincidente!.id));
   }
 
-Future<void> _asignarCategoria(String rfidUid) async {
-  final datos = await showDialog<DatosAltaAnimal>(
-    context: context,
-    builder: (_) => const DialogoAltaAnimal(),
-  );
-  if (datos == null) return;
-  final nuevoAnimal = await _animalesService.crearAnimal(
-    rfidUid: rfidUid,
-    campoId: widget.campo.id,
-    categoria: datos.categoria,
-    animalId: datos.animalId,
-    apodo: datos.apodo,
-  );
-  setState(() {
-    _sinIdentificar.remove(rfidUid);
-    _animales.add(nuevoAnimal);
-    _idsDetectados.add(nuevoAnimal.id);
-  });
-}
+  Future<void> _asignarCategoria(String rfidUid) async {
+    final datos = await showDialog<DatosAltaAnimal>(
+      context: context,
+      builder: (_) => const DialogoAltaAnimal(),
+    );
+    if (datos == null) return;
+    final nuevoAnimal = await _animalesService.crearAnimal(
+      rfidUid: rfidUid,
+      campoId: widget.campo.id,
+      categoria: datos.categoria,
+      animalId: datos.animalId,
+      apodo: datos.apodo,
+      raza: datos.raza,
+    );
+    setState(() {
+      _sinIdentificar.remove(rfidUid);
+      _animales.add(nuevoAnimal);
+      _idsDetectados.add(nuevoAnimal.id);
+    });
+  }
+
   Future<void> _detener() async {
     if (_canal != null) {
       await _lecturasService.dejarDeEscuchar(_canal!);

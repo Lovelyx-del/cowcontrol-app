@@ -34,11 +34,11 @@ class EstadoFertilChip extends StatelessWidget {
       return const SizedBox.shrink();
     }
     if (valor == null) {
-      return const Chip(label: Text('Estado Fertil: sin dato'));
+      return const Chip(label: Text('Sin dato'));
     }
     return Chip(
       avatar: const Icon(Icons.pregnant_woman, size: 18, color: Colors.white),
-      label: Text('Estado Fertil: $valor'),
+      label: Text(valor!),
       backgroundColor: _color(),
       labelStyle: const TextStyle(
         color: Colors.white,

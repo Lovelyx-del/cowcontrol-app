@@ -316,15 +316,17 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: ElevatedButton(
-                onPressed: () async {
+                                onPressed: () async {
                   final animales = await _futureAnimales;
                   if (!context.mounted) return;
-                  Navigator.of(context).push(
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) =>
                           ConteoScreen(campo: widget.campo, animales: animales),
                     ),
                   );
+                  if (!context.mounted) return;
+                  _recargar();
                 },
                 child: const Text('Iniciar Conteo'),
               ),

@@ -13,6 +13,8 @@ import 'etapa_vida_screen.dart';
 import 'observaciones_screen.dart';
 import 'vacunas_screen.dart';
 import 'video_screen.dart';
+import '../services/animales_service.dart';
+import '../widgets/dialogo_alta_animal.dart';
 
 class DetalleAnimalScreen extends StatefulWidget {
   final Animal animal;
@@ -36,7 +38,6 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     super.initState();
     _animal = widget.animal;
   }
-
   Future<void> _abrir(Widget pantalla) async {
     final resultado = await Navigator.of(
       context,
@@ -46,15 +47,41 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     }
   }
 
+  Future<void> _editar() async {
+    final datos = await showDialog<DatosAltaAnimal>(
+      context: context,
+      builder: (_) => DialogoAltaAnimal(
+        animalIdInicial: _animal.animalId,
+        apodoInicial: _animal.apodo,
+        categoriaInicial: _animal.categoria,
+        razaInicial: _animal.raza,
+      ),
+    );
+    if (datos == null) return;
+    final actualizado = await AnimalesService().actualizarDatosAnimal(
+      id: _animal.id,
+      animalId: datos.animalId,
+      apodo: datos.apodo,
+      categoria: datos.categoria,
+      raza: datos.raza,
+    );
+    if (mounted) setState(() => _animal = actualizado);
+  }
   @override
   Widget build(BuildContext context) {
     final esHembra = _animal.categoria == 'hembra';
 
     return Scaffold(
-      appBar: AppBar(
+           appBar: AppBar(
         title: Text(widget.campo.nombreCampo),
         centerTitle: false,
         titleSpacing: 12,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _editar,
+          ),
+        ],
       ),
       body: ListView(
         children: [

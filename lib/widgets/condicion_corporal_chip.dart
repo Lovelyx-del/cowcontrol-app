@@ -25,11 +25,11 @@ class CondicionCorporalChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (valor == null) {
-      return const Chip(label: Text('Condicion Corporal: sin dato'));
+      return const Chip(label: Text('Sin dato'));
     }
     return Chip(
       avatar: const Icon(Icons.favorite_outline, size: 18, color: Colors.white),
-      label: Text('Condicion Corporal: $valor'),
+      label: Text(valor!),
       backgroundColor: _color(),
       labelStyle: const TextStyle(
         color: Colors.white,

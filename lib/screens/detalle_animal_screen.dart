@@ -67,9 +67,11 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     );
     if (mounted) setState(() => _animal = actualizado);
   }
-  @override
-  Widget build(BuildContext context) {
-    final esHembra = _animal.categoria == 'hembra';
+   static const _categoriasHembra = {'vaca', 'ternera', 'vaquillona'};
+  
+    @override
+    Widget build(BuildContext context) {
+      final esHembra = _categoriasHembra.contains(_animal.categoria);
 
     return Scaffold(
            appBar: AppBar(
@@ -105,6 +107,12 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
           ),
           const SizedBox(height: 20),
           const Divider(height: 1),
+           _FilaMenu(
+            icono: Icons.pets_outlined,
+            etiqueta: 'Raza',
+            trailing: Text(_animal.raza ?? 'Sin especificar'),
+            onTap: _editar,
+          ),
           _FilaMenu(
             icono: Icons.favorite,
             etiqueta: 'Condicion Corporal',

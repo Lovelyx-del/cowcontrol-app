@@ -38,7 +38,6 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     super.initState();
     _animal = widget.animal;
   }
-
   Future<void> _abrir(Widget pantalla) async {
     final resultado = await Navigator.of(
       context,
@@ -69,60 +68,44 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     if (mounted) setState(() => _animal = actualizado);
   }
 
-  static const _categoriasHembra = {'vaca', 'ternera', 'vaquillona'};
-
   @override
   Widget build(BuildContext context) {
-    final esHembra = _categoriasHembra.contains(_animal.categoria);
+    final esHembra = _animal.categoria == 'hembra';
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.campo.nombreCampo),
         centerTitle: false,
         titleSpacing: 12,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _editar,
+          ),
+        ],
       ),
       body: ListView(
         children: [
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const SizedBox(width: 48),
-              Expanded(
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CategoriaBadge(categoria: _animal.categoria),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          _animal.nombreMostrado,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace',
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ],
+          const SizedBox(height: 20),
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CategoriaBadge(categoria: _animal.categoria),
+                const SizedBox(width: 8),
+                Text(
+                  _animal.nombreMostrado,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                    fontSize: 16,
                   ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: _editar,
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           const Divider(height: 1),
-          _FilaMenu(
-            icono: Icons.pets_outlined,
-            etiqueta: 'Raza',
-            trailing: Text(_animal.raza ?? 'Sin especificar'),
-            onTap: _editar,
-          ),
           _FilaMenu(
             icono: Icons.favorite,
             etiqueta: 'Condicion Corporal',
@@ -187,17 +170,8 @@ class _FilaMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icono, color: AppColors.marronPrincipal),
-      title: Text(
-        etiqueta,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: trailing == null
-          ? null
-          : ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 170),
-              child: trailing,
-            ),
+      title: Text(etiqueta),
+      trailing: trailing,
       onTap: onTap,
     );
   }

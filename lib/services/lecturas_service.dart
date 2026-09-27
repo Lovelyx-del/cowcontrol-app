@@ -90,10 +90,12 @@ class LecturasService {
   /// El productor decidió que ese tag no corresponde a un animal (lectura
   /// falsa, tag ajeno, etc.). No borra el historial, solo lo saca de la
   /// lista de pendientes.
-  Future<void> descartarTag(String rfidUid, String campoId) async {
-    await _client.from('tags_descartados').upsert({
+ Future<void> descartarTag(String rfidUid, String campoId) async {
+  await _client.from('tags_descartados').upsert(
+    {
       'rfid_uid': rfidUid,
       'campo_id': campoId,
-    });
-  }
+    },
+    onConflict: 'rfid_uid,campo_id',
+  );
 }

@@ -99,3 +99,4 @@ class LecturasService {
     onConflict: 'rfid_uid,campo_id',
   );
 }
+}

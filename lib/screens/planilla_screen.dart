@@ -205,13 +205,6 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error al cargar animales: ${snapshot.error}',
-                      ),
-                    );
-                  }
                   final todos = snapshot.data ?? [];
                   // ValueListenableBuilder en vez de leer _busquedaController.text
                   // directo del build de arriba: asi solo esta lista se

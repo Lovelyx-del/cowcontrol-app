@@ -315,8 +315,8 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
             top: false,
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: ElevatedButton(
-                                onPressed: () async {
+                         child: ElevatedButton(
+                onPressed: () async {
                   final animales = await _futureAnimales;
                   if (!context.mounted) return;
                   await Navigator.of(context).push(

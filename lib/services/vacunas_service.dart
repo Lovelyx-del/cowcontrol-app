@@ -4,11 +4,12 @@ import 'supabase_service.dart';
 /// Trae todas las vacunas de un animal, la mas nueva primero.
 class VacunasService {
   final _client = SupabaseService.client;
+
   Future<List<Vacuna>> traerVacunas(String animalId) async {
     final data = await _client
         .from('datos_vacuna')
         .select()
-        .eq('id_animal', animalId)
+        .eq('datos_animales_id', animalId)   // antes: 'id_animal'
         .order('fecha_vacuna', ascending: false);
     return (data as List)
         .map((fila) => Vacuna.fromMap(fila as Map<String, dynamic>))
@@ -21,7 +22,7 @@ class VacunasService {
     DateTime? fechaVacuna,
   }) async {
     await _client.from('datos_vacuna').insert({
-      'id_animal': idAnimal,
+      'datos_animales_id': idAnimal,   // antes: 'id_animal'
       'nombre_vacuna': nombreVacuna,
       if (fechaVacuna != null) 'fecha_vacuna': fechaVacuna.toIso8601String(),
     });

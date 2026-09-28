@@ -13,7 +13,7 @@ class Vacuna {
 
   factory Vacuna.fromMap(Map<String, dynamic> map) {
     return Vacuna(
-      idAnimal: map['id_animal'] as String,
+      idAnimal: map['datos_animales_id'] as String,   // antes: 'id_animal'
       nombreVacuna: map['nombre_vacuna'] as String,
       fechaVacuna: map['fecha_vacuna'] != null
           ? DateTime.parse(map['fecha_vacuna'] as String)

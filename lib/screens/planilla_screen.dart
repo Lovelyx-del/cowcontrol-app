@@ -65,6 +65,34 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     _recargar();
   }
 
+    Future<void> _confirmarEliminar(String rfidUid) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar tag'),
+        content: Text(
+          '¿Estás seguro de que querés eliminar el tag $rfidUid de "No registrados"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmado == true) {
+      await _eliminarNoRegistrado(rfidUid);
+    }
+  }
+  
   Future<void> _agregarNoRegistrado(String rfidUid) async {
     final datos = await showDialog<DatosAltaAnimal>(
       context: context,
@@ -287,7 +315,7 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               TextButton(
-                                onPressed: () => _eliminarNoRegistrado(uid),
+                                onPressed: () => _confirmarEliminar(uid),
                                 child: const Text(
                                   'Eliminar',
                                   style: TextStyle(color: Colors.red),

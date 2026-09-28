@@ -59,9 +59,14 @@ class _HistorialScreenState extends State<HistorialScreen> {
             itemBuilder: (context, indice) {
               final lectura = lecturas[indice];
               return ListTile(
-                leading: const Icon(Icons.nfc),
-                title: Text(lectura.rfidUid),
-                subtitle: Text(_formatearFecha(lectura.fechaHora)),
+                leading: const Icon(Icons.history),
+                title: Text(
+                  _formatearFecha(lectura.fechaHora), 
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 18,
+                    ),
+                  ),
               );
             },
           );

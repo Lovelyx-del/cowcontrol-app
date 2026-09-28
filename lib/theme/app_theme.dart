@@ -71,6 +71,10 @@ class AppTheme {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        floatingLabelStyle: const TextStyle(
+          color: AppColors.marronPrincipal,
+          backgroundColor: Colors.white, //tapa el borde detras del label, para que si el texto se sobre sale por el tamañpo no se vea mal
+          ),
       ),
       textTheme: const TextTheme(
         titleLarge: TextStyle(

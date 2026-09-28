@@ -255,6 +255,12 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
           FutureBuilder<List<String>>(
             future: _futureNoRegistrados,
             builder: (context, snapshot) {
+               if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text('Error al cargar no registrados: ${snapshot.error}'),
+                );
+              }
               final pendientes = snapshot.data ?? [];
               if (pendientes.isEmpty) return const SizedBox.shrink();
               return Padding(

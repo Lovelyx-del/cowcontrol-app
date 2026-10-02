@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/animal.dart';
@@ -43,7 +45,8 @@ class _VideoScreenState extends State<VideoScreen> {
       debugPrint('[VideoScreen] rfid buscado: "$rfid"');
 
       final seg = await service.ultimoSegmentoDelAnimal(rfid);
-      debugPrint('[VideoScreen] segmento: ${seg == null ? "null" : seg.storagePath}');
+      debugPrint(
+          '[VideoScreen] segmento: ${seg == null ? "null" : seg.storagePath}');
 
       if (seg == null) {
         if (mounted) setState(() => _cargando = false);
@@ -84,6 +87,43 @@ class _VideoScreenState extends State<VideoScreen> {
     await _c!.play();
   }
 
+  void _avisar(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+
+  /// Genera un link nuevo (el bucket es privado, el link vence en 1 hora) y
+  /// abre el video completo fuera de la app.
+  Future<void> _abrirVideoCompleto() async {
+    final seg = _seg;
+    if (seg == null) return;
+    try {
+      final url = await VideoService().urlFirmada(seg.storagePath);
+      final ok = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!ok) _avisar('No se pudo abrir el video completo');
+    } catch (e) {
+      debugPrint('[VideoScreen] error al abrir video completo: $e');
+      _avisar('No se pudo abrir el video completo');
+    }
+  }
+
+  Future<void> _copiarLinkVideoCompleto() async {
+    final seg = _seg;
+    if (seg == null) return;
+    try {
+      final url = await VideoService().urlFirmada(seg.storagePath);
+      await Clipboard.setData(ClipboardData(text: url));
+      _avisar('Link copiado (vale por 1 hora)');
+    } catch (e) {
+      debugPrint('[VideoScreen] error al copiar link: $e');
+      _avisar('No se pudo copiar el link');
+    }
+  }
+
   @override
   void dispose() {
     _c?.dispose();
@@ -121,31 +161,54 @@ class _VideoScreenState extends State<VideoScreen> {
         ),
       );
     }
-    return Column(
-      children: [
-        AspectRatio(
-          aspectRatio: _c!.value.aspectRatio,
-          child: VideoPlayer(_c!),
-        ),
-        VideoProgressIndicator(_c!, allowScrubbing: true),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: Icon(_c!.value.isPlaying ? Icons.pause : Icons.play_arrow),
-              onPressed: () => setState(
-                  () => _c!.value.isPlaying ? _c!.pause() : _c!.play()),
-            ),
-            ElevatedButton.icon(
-              icon: Icon(_soloSegmento ? Icons.movie : Icons.content_cut),
-              label: Text(
-                  _soloSegmento ? 'Ver video completo' : 'Volver al segmento'),
-              onPressed: _alternar,
-            ),
-          ],
-        ),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          AspectRatio(
+            aspectRatio: _c!.value.aspectRatio,
+            child: VideoPlayer(_c!),
+          ),
+          VideoProgressIndicator(_c!, allowScrubbing: true),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon:
+                    Icon(_c!.value.isPlaying ? Icons.pause : Icons.play_arrow),
+                onPressed: () => setState(
+                    () => _c!.value.isPlaying ? _c!.pause() : _c!.play()),
+              ),
+              ElevatedButton.icon(
+                icon: Icon(_soloSegmento ? Icons.movie : Icons.content_cut),
+                label: Text(_soloSegmento
+                    ? 'Ver video completo'
+                    : 'Volver al segmento'),
+                onPressed: _alternar,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.open_in_new),
+                label: const Text(
+                  'Abrir video completo',
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
+                onPressed: _abrirVideoCompleto,
+              ),
+              IconButton(
+                tooltip: 'Copiar link',
+                icon: const Icon(Icons.link),
+                onPressed: _copiarLinkVideoCompleto,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

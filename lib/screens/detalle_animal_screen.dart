@@ -118,7 +118,7 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
           const SizedBox(height: 12),
           const Divider(height: 1),
           _FilaMenu(
-            imagen: 'assets/images/vaca.png',
+            imagen: 'assets/images/vaca2.png',
             etiqueta: 'Raza',
             trailing: Text(_animal.raza ?? 'Sin especificar'),
             onTap: _editar,
@@ -140,7 +140,7 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
               onTap: () => _abrir(EstadoFertilScreen(animal: _animal)),
             ),
           _FilaMenu(
-            imagen: 'assets/images/vaca.png',
+            imagen: 'assets/images/vaca2.png',
             etiqueta: 'Etapa de Vida',
             trailing: EtapaVidaChip(valor: _animal.etapaVida),
             onTap: () => _abrir(EtapaVidaScreen(animal: _animal)),

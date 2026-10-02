@@ -118,7 +118,7 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
           const SizedBox(height: 12),
           const Divider(height: 1),
           _FilaMenu(
-            icono: Icons.pets_outlined,
+            imagen: 'assets/images/vaca.png',
             etiqueta: 'Raza',
             trailing: Text(_animal.raza ?? 'Sin especificar'),
             onTap: _editar,
@@ -140,7 +140,7 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
               onTap: () => _abrir(EstadoFertilScreen(animal: _animal)),
             ),
           _FilaMenu(
-            icono: Icons.pets,
+            imagen: 'assets/images/vaca.png',
             etiqueta: 'Etapa de Vida',
             trailing: EtapaVidaChip(valor: _animal.etapaVida),
             onTap: () => _abrir(EtapaVidaScreen(animal: _animal)),
@@ -171,22 +171,26 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
 }
 
 class _FilaMenu extends StatelessWidget {
-  final IconData icono;
+  final IconData? icono;
+  final String? imagen; // ruta de un asset, en lugar del ícono
   final String etiqueta;
   final VoidCallback onTap;
   final Widget? trailing;
 
   const _FilaMenu({
-    required this.icono,
+    this.icono,
+    this.imagen,
     required this.etiqueta,
     required this.onTap,
     this.trailing,
-  });
+  }) : assert(icono != null || imagen != null);
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icono, color: AppColors.marronPrincipal),
+      leading: imagen != null
+          ? Image.asset(imagen!, width: 28, height: 28, fit: BoxFit.contain)
+          : Icon(icono, color: AppColors.marronPrincipal),
       title: Text(
         etiqueta,
         maxLines: 1,

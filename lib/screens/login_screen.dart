@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/auth_service.dart';
-import '../theme/app_theme.dart';
 import '../widgets/password_checklist.dart';
 import 'verificar_codigo_screen.dart';
+
+/// Paleta celeste solo para el login (el resto de la app mantiene AppTheme).
+class _LoginColors {
+  static const fondo = Color(0xFFEAF4FC);
+  static const celesteClaro = Color(0xFFBFE0F5); // bordes de los campos
+  static const principal = Color(0xFF1F78BD); // botón, foco y links
+  static const texto = Color(0xFF12344D);
+}
 
 /// Traduce los codigos de error de Supabase Auth a mensajes en español que un
 /// productor pueda entender, sin exponer el detalle tecnico de la excepcion.
@@ -151,135 +158,183 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Tema celeste que solo vale dentro de esta pantalla.
+  ThemeData _temaLogin(BuildContext context) {
+    final base = Theme.of(context);
+    OutlineInputBorder borde(Color color, {double ancho = 1}) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: color, width: ancho),
+        );
+
+    return base.copyWith(
+      scaffoldBackgroundColor: _LoginColors.fondo,
+      colorScheme: base.colorScheme.copyWith(
+        primary: _LoginColors.principal,
+        secondary: _LoginColors.principal,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: _LoginColors.principal),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _LoginColors.principal,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        border: borde(_LoginColors.celesteClaro),
+        enabledBorder: borde(_LoginColors.celesteClaro),
+        focusedBorder: borde(_LoginColors.principal, ancho: 2),
+        floatingLabelStyle: const TextStyle(
+          color: _LoginColors.principal,
+          backgroundColor: Colors.white,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(
-                    Icons.pets,
-                    size: 72,
-                    color: AppColors.marronPrincipal,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'CowControl',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(fontSize: 32),
-                  ),
-                  const SizedBox(height: 32),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (valor) =>
-                        (valor == null || !valor.contains('@'))
-                        ? 'Ingresa un email valido'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: !_mostrarPassword,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    decoration: InputDecoration(
-                      labelText: 'Contraseña',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _mostrarPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () => setState(
-                          () => _mostrarPassword = !_mostrarPassword,
-                        ),
+    return Theme(
+      data: _temaLogin(context),
+      child: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Image.asset(
+                      'assets/images/vaca_sensor.png',
+                      height: 120,
+                      semanticLabel: 'Logo de CowControl',
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'CowControl',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: _LoginColors.texto,
                       ),
                     ),
-                    validator: (valor) {
-                      if (valor == null || valor.isEmpty) {
-                        return 'Ingresa una contraseña';
-                      }
-                      if (_esRegistro && !_passwordEsValida) {
-                        return 'La contraseña no cumple los requisitos de arriba';
-                      }
-                      return null;
-                    },
-                  ),
-                  if (_esRegistro) ...[
-                    const SizedBox(height: 8),
-                    // Reconstruir solo el checklist (no el TextFormField
-                    // entero) en cada tecla — un campo que se reconstruye
-                    // completo mientras el teclado de Android todavia esta
-                    // componiendo el texto puede terminar guardando algo
-                    // distinto de lo que se escribio, sin ningun error.
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _passwordController,
-                      builder: (context, valor, _) =>
-                          PasswordChecklist(password: valor.text),
+                    const SizedBox(height: 32),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      validator: (valor) =>
+                          (valor == null || !valor.contains('@'))
+                          ? 'Ingresa un email valido'
+                          : null,
                     ),
-                  ],
-                  if (!_esRegistro)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: _cargando ? null : _recuperarPassword,
-                        child: const Text('¿Olvidaste tu contraseña?'),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: !_mostrarPassword,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _mostrarPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(
+                            () => _mostrarPassword = !_mostrarPassword,
+                          ),
+                        ),
+                      ),
+                      validator: (valor) {
+                        if (valor == null || valor.isEmpty) {
+                          return 'Ingresa una contraseña';
+                        }
+                        if (_esRegistro && !_passwordEsValida) {
+                          return 'La contraseña no cumple los requisitos de arriba';
+                        }
+                        return null;
+                      },
+                    ),
+                    if (_esRegistro) ...[
+                      const SizedBox(height: 8),
+                      // Reconstruir solo el checklist (no el TextFormField
+                      // entero) en cada tecla — un campo que se reconstruye
+                      // completo mientras el teclado de Android todavia esta
+                      // componiendo el texto puede terminar guardando algo
+                      // distinto de lo que se escribio, sin ningun error.
+                      ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _passwordController,
+                        builder: (context, valor, _) =>
+                            PasswordChecklist(password: valor.text),
+                      ),
+                    ],
+                    if (!_esRegistro)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _cargando ? null : _recuperarPassword,
+                          child: const Text('¿Olvidaste tu contraseña?'),
+                        ),
+                      ),
+                    if (_mensajeExito != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        _mensajeExito!,
+                        style: const TextStyle(color: Colors.green),
+                      ),
+                    ],
+                    if (_error != null) ...[
+                      const SizedBox(height: 12),
+                      Text(_error!, style: const TextStyle(color: Colors.red)),
+                    ],
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _cargando ? null : _enviar,
+                      child: _cargando
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(_esRegistro ? 'Registrarme' : 'Iniciar sesion'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: _cargando
+                          ? null
+                          : () => setState(() {
+                              _esRegistro = !_esRegistro;
+                              _error = null;
+                              _mensajeExito = null;
+                            }),
+                      child: Text(
+                        _esRegistro
+                            ? 'Ya tengo cuenta — Iniciar sesion'
+                            : 'Soy nuevo — Registrarme',
                       ),
                     ),
-                  if (_mensajeExito != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _mensajeExito!,
-                      style: const TextStyle(color: Colors.green),
-                    ),
                   ],
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(_error!, style: const TextStyle(color: Colors.red)),
-                  ],
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _cargando ? null : _enviar,
-                    child: _cargando
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(_esRegistro ? 'Registrarme' : 'Iniciar sesion'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _cargando
-                        ? null
-                        : () => setState(() {
-                            _esRegistro = !_esRegistro;
-                            _error = null;
-                            _mensajeExito = null;
-                          }),
-                    child: Text(
-                      _esRegistro
-                          ? 'Ya tengo cuenta — Iniciar sesion'
-                          : 'Soy nuevo — Registrarme',
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

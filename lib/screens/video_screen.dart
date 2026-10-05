@@ -6,8 +6,8 @@ import 'package:video_player/video_player.dart';
 import '../models/animal.dart';
 import '../services/video_service.dart';
 
-/// Pantalla de video del animal: reproduce el segmento donde fue leído y
-/// permite alternar con el video completo del conteo.
+/// Pantalla de video del animal: muestra el video completo del conteo y un
+/// botón que salta al momento exacto donde se leyó al animal.
 class VideoScreen extends StatefulWidget {
   final Animal animal;
 
@@ -20,17 +20,20 @@ class VideoScreen extends StatefulWidget {
 class _VideoScreenState extends State<VideoScreen> {
   VideoPlayerController? _c;
   VideoSegmento? _seg;
-  bool _soloSegmento = true;
   bool _cargando = true;
   String? _error;
 
-  Duration get _desde {
+  /// Punto de salto: 2 segundos antes de que aparezca el animal.
+  Duration get _momentoAnimal {
     final s = ((_seg?.inicio ?? 0) - 2).clamp(0, double.infinity);
     return Duration(milliseconds: (s * 1000).round());
   }
 
-  Duration get _hasta =>
-      Duration(milliseconds: (((_seg?.fin ?? 0) + 2) * 1000).round());
+  String _formatear(Duration d) {
+    final min = d.inMinutes;
+    final seg = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return '$min:$seg';
+  }
 
   @override
   void initState() {
@@ -55,13 +58,8 @@ class _VideoScreenState extends State<VideoScreen> {
       final url = await service.urlFirmada(seg.storagePath);
       final c = VideoPlayerController.networkUrl(Uri.parse(url));
       await c.initialize();
-      c.addListener(() {
-        if (_soloSegmento && c.value.isPlaying && c.value.position >= _hasta) {
-          c.pause();
-        }
-      });
       _seg = seg;
-      await c.seekTo(_desde);
+      await c.seekTo(_momentoAnimal);
       await c.play();
       if (mounted) {
         setState(() {
@@ -80,11 +78,21 @@ class _VideoScreenState extends State<VideoScreen> {
     }
   }
 
-  Future<void> _alternar() async {
-    if (_c == null) return;
-    setState(() => _soloSegmento = !_soloSegmento);
-    await _c!.seekTo(_soloSegmento ? _desde : Duration.zero);
-    await _c!.play();
+  Future<void> _alternarPlayPause() async {
+    final c = _c;
+    if (c == null) return;
+    if (c.value.isPlaying) {
+      await c.pause();
+    } else {
+      await c.play();
+    }
+  }
+
+  Future<void> _irAlAnimal() async {
+    final c = _c;
+    if (c == null) return;
+    await c.seekTo(_momentoAnimal);
+    await c.play();
   }
 
   void _avisar(String mensaje) {
@@ -173,18 +181,17 @@ class _VideoScreenState extends State<VideoScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(
-                icon:
-                    Icon(_c!.value.isPlaying ? Icons.pause : Icons.play_arrow),
-                onPressed: () => setState(
-                    () => _c!.value.isPlaying ? _c!.pause() : _c!.play()),
+              ValueListenableBuilder<VideoPlayerValue>(
+                valueListenable: _c!,
+                builder: (context, value, _) => IconButton(
+                  icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
+                  onPressed: _alternarPlayPause,
+                ),
               ),
               ElevatedButton.icon(
-                icon: Icon(_soloSegmento ? Icons.movie : Icons.content_cut),
-                label: Text(_soloSegmento
-                    ? 'Ver video completo'
-                    : 'Volver al segmento'),
-                onPressed: _alternar,
+                icon: const Icon(Icons.my_location),
+                label: Text('Ir a donde aparece (${_formatear(_momentoAnimal)})'),
+                onPressed: _irAlAnimal,
               ),
             ],
           ),

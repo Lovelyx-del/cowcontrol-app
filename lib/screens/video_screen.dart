@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/animal.dart';
 import '../services/video_service.dart';
 
-/// Pantalla de video del animal: muestra el video completo del conteo y un
+/// Pantalla de video del animal: muestra el video COMPLETO del conteo y un
 /// botón que salta al momento exacto donde se leyó al animal.
 class VideoScreen extends StatefulWidget {
   final Animal animal;
@@ -18,15 +16,19 @@ class VideoScreen extends StatefulWidget {
 }
 
 class _VideoScreenState extends State<VideoScreen> {
+  // El botón salta 1 segundo antes de que aparezca la vaca.
+  static const _antesDelAnimal = Duration(seconds: 1);
+
   VideoPlayerController? _c;
   VideoSegmento? _seg;
   bool _cargando = true;
   String? _error;
 
-  /// Punto de salto: 2 segundos antes de que aparezca el animal.
+  /// Momento del video donde aparece el animal.
   Duration get _momentoAnimal {
-    final s = ((_seg?.inicio ?? 0) - 2).clamp(0, double.infinity);
-    return Duration(milliseconds: (s * 1000).round());
+    final ms = (((_seg?.inicio ?? 0) * 1000).round()) -
+        _antesDelAnimal.inMilliseconds;
+    return Duration(milliseconds: ms < 0 ? 0 : ms);
   }
 
   String _formatear(Duration d) {
@@ -59,8 +61,6 @@ class _VideoScreenState extends State<VideoScreen> {
       final c = VideoPlayerController.networkUrl(Uri.parse(url));
       await c.initialize();
       _seg = seg;
-      await c.seekTo(_momentoAnimal);
-      await c.play();
       if (mounted) {
         setState(() {
           _c = c;
@@ -93,43 +93,6 @@ class _VideoScreenState extends State<VideoScreen> {
     if (c == null) return;
     await c.seekTo(_momentoAnimal);
     await c.play();
-  }
-
-  void _avisar(String mensaje) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(mensaje)));
-  }
-
-  /// Genera un link nuevo (el bucket es privado, el link vence en 1 hora) y
-  /// abre el video completo fuera de la app.
-  Future<void> _abrirVideoCompleto() async {
-    final seg = _seg;
-    if (seg == null) return;
-    try {
-      final url = await VideoService().urlFirmada(seg.storagePath);
-      final ok = await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      );
-      if (!ok) _avisar('No se pudo abrir el video completo');
-    } catch (e) {
-      debugPrint('[VideoScreen] error al abrir video completo: $e');
-      _avisar('No se pudo abrir el video completo');
-    }
-  }
-
-  Future<void> _copiarLinkVideoCompleto() async {
-    final seg = _seg;
-    if (seg == null) return;
-    try {
-      final url = await VideoService().urlFirmada(seg.storagePath);
-      await Clipboard.setData(ClipboardData(text: url));
-      _avisar('Link copiado (vale por 1 hora)');
-    } catch (e) {
-      debugPrint('[VideoScreen] error al copiar link: $e');
-      _avisar('No se pudo copiar el link');
-    }
   }
 
   @override
@@ -192,25 +155,6 @@ class _VideoScreenState extends State<VideoScreen> {
                 icon: const Icon(Icons.my_location),
                 label: Text('Ir a donde aparece (${_formatear(_momentoAnimal)})'),
                 onPressed: _irAlAnimal,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton.icon(
-                icon: const Icon(Icons.open_in_new),
-                label: const Text(
-                  'Abrir video completo',
-                  style: TextStyle(decoration: TextDecoration.underline),
-                ),
-                onPressed: _abrirVideoCompleto,
-              ),
-              IconButton(
-                tooltip: 'Copiar link',
-                icon: const Icon(Icons.link),
-                onPressed: _copiarLinkVideoCompleto,
               ),
             ],
           ),

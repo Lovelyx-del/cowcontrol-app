@@ -140,24 +140,31 @@ class _VideoScreenState extends State<VideoScreen> {
             child: VideoPlayer(_c!),
           ),
           VideoProgressIndicator(_c!, allowScrubbing: true),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ValueListenableBuilder<VideoPlayerValue>(
-                valueListenable: _c!,
-                builder: (context, value, _) => IconButton(
-                  icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
-                  onPressed: _alternarPlayPause,
-                ),
-              ),
-              ElevatedButton.icon(
+          const SizedBox(height: 8),
+          ValueListenableBuilder<VideoPlayerValue>(
+            valueListenable: _c!,
+            builder: (context, value, _) => IconButton(
+              iconSize: 40,
+              icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
+              onPressed: _alternarPlayPause,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Fuera de un Row, para que el botón ocupe todo el ancho (el tema
+          // de la app le pide ancho infinito y dentro de un Row no se dibuja).
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
                 icon: const Icon(Icons.my_location),
-                label: Text('Ir a donde aparece (${_formatear(_momentoAnimal)})'),
+                label: Text(
+                    'Ir a donde aparece este animal (${_formatear(_momentoAnimal)})'),
                 onPressed: _irAlAnimal,
               ),
-            ],
+            ),
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );

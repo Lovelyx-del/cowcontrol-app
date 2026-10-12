@@ -44,11 +44,6 @@ class EtapaVidaChip extends StatelessWidget {
     }
     final label = _labels[valor] ?? valor!;
     return Chip(
-      avatar: Icon(
-        _necesitaAlerta ? Icons.warning_amber_rounded : Icons.pets,
-        size: 18,
-        color: Colors.white,
-      ),
       label: Text(
         _necesitaAlerta ? '⚠️ $label' : label,
       ),

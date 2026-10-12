@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../main.dart';
 import '../models/campo.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'historial_screen.dart';
 import 'informacion_personal_screen.dart';
-import 'login_screen.dart';
 
 /// Pantalla de configuracion — se entra desde el icono de tuerca en la
 /// Planilla. Junta el Historial de lecturas (que antes estaba directo en el
@@ -35,13 +35,13 @@ class ConfiguracionScreen extends StatelessWidget {
     );
     if (confirmar != true) return;
     await AuthService().cerrarSesion();
-    // pushAndRemoveUntil en vez de confiar en AuthGate: cuando hay un solo
-    // campo, SelectorCampoScreen entra con pushReplacement (ver seccion 16),
-    // asi que AuthGate ya no esta en el arbol de widgets para reaccionar solo
-    // al cierre de sesion.
+    // Volver a AuthGate, no a un LoginScreen suelto: con un solo campo,
+    // SelectorCampoScreen entra con pushReplacement (ver seccion 16) y saca a
+    // AuthGate de la pila. Hay que reconstruirlo para que el proximo login
+    // dispare onAuthStateChange y avance solo.
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const AuthGate()),
       (route) => false,
     );
   }

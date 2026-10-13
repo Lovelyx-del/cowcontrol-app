@@ -1,18 +1,24 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - supabase_flutter: por AuthException, para leer el código de error (por
+//   ejemplo 'otp_expired' cuando el código venció).
+// - ../widgets/password_checklist.dart: los requisitos de la contraseña nueva.
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/auth_service.dart';
 import '../widgets/password_checklist.dart';
 
-/// Pantalla para terminar de restablecer la contraseña con el código que
-/// manda el mail de recuperación — se llega acá justo después de pedir el
-/// mail (desde login_screen.dart o informacion_personal_screen.dart).
-///
-/// Dos pasos, uno primero que el otro: se pide y confirma el código solo
-/// (nada de contraseña todavía); recién cuando el código es correcto
-/// aparece el campo de contraseña nueva. A diferencia del link de
-/// docs/restablecer.html, el código se confirma adentro de la app, en el
-/// mismo lugar donde se pidió el mail, así que no choca con PKCE.
+// ============================================================
+// verificar_codigo_screen — Sub-pantalla de recuperación de contraseña
+// (se llega desde la Pantalla 0 o desde Información Personal)
+//
+// Qué hace este archivo:
+// Termino de restablecer la contraseña con el código que llega por mail, en
+// dos pasos: primero confirmo el código y recién ahí aparece el campo de la
+// contraseña nueva. Antes se usaba un link a docs/restablecer.html; con el
+// código todo pasa adentro de la app, así que no choca con PKCE.
+// ============================================================
 class VerificarCodigoScreen extends StatefulWidget {
   final String email;
 
@@ -22,6 +28,13 @@ class VerificarCodigoScreen extends StatefulWidget {
   State<VerificarCodigoScreen> createState() => _VerificarCodigoScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _VerificarCodigoScreenState — en qué paso estoy
+//
+// _codigoVerificado decide qué paso se ve: false = pedir el código, true =
+// pedir la contraseña nueva. Tengo un controller para cada campo, el ojito de
+// la contraseña, _cargando para los botones y _error para el mensaje en rojo.
+// ---------------------------------------------------------------------------
 class _VerificarCodigoScreenState extends State<VerificarCodigoScreen> {
   final _authService = AuthService();
   final _codigoController = TextEditingController();
@@ -39,6 +52,13 @@ class _VerificarCodigoScreenState extends State<VerificarCodigoScreen> {
     super.dispose();
   }
 
+  // ---------------------------------------------------------------------------
+  // _verificarCodigo — paso 1: confirmar el código del mail
+  //
+  // Si está vacío aviso. Si no, se lo mando a Supabase con el mail. Si es
+  // correcto, cierro el teclado y paso al paso 2. Si venció ('otp_expired')
+  // muestro un mensaje claro para pedir otro; si es otro error, su mensaje.
+  // ---------------------------------------------------------------------------
   Future<void> _verificarCodigo() async {
     if (_codigoController.text.trim().isEmpty) {
       setState(() => _error = 'Ingresa el código que te mandamos.');
@@ -72,6 +92,14 @@ class _VerificarCodigoScreenState extends State<VerificarCodigoScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // _guardarPassword — paso 2: guardar la contraseña nueva
+  //
+  // Si no cumple el checklist, aviso y corto. Si cumple, la guardo con
+  // AuthService y vuelvo a la primera pantalla de la pila (popUntil isFirst).
+  // TODO: revisar en la presentación — confirmar a qué pantalla cae en cada
+  // camino (desde el login o desde Información Personal).
+  // ---------------------------------------------------------------------------
   Future<void> _guardarPassword() async {
     if (!PasswordChecklist.esValida(_passwordController.text)) {
       setState(
@@ -95,6 +123,13 @@ class _VerificarCodigoScreenState extends State<VerificarCodigoScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // build — muestra el paso 1 o el paso 2
+  //
+  // Arriba, un texto que cambia según el paso. Paso 1: campo de código con
+  // teclado numérico y "Confirmar código". Paso 2: contraseña nueva con ojito,
+  // el checklist y "Guardar contraseña". Abajo de todo, el error si hay.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(

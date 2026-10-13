@@ -1,11 +1,23 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - video_player: el paquete oficial de Flutter para reproducir videos. De
+//   acá salen VideoPlayerController, VideoPlayer y VideoProgressIndicator.
+// - ../services/video_service.dart: busca el segmento de video del animal y
+//   me da la URL firmada para poder bajarlo.
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/animal.dart';
 import '../services/video_service.dart';
 
-/// Pantalla de video del animal: muestra el video COMPLETO del conteo y un
-/// botón que salta al momento exacto donde se leyó al animal.
+// ============================================================
+// video_screen — Sub-pantalla de la Pantalla 4 (ficha del animal)
+//
+// Qué hace este archivo:
+// Muestro el video completo del último conteo en el que pasó el animal, con
+// play/pausa y una barra para adelantar. Abajo hay un botón que salta justo
+// al momento en que el lector leyó al animal.
+// ============================================================
 class VideoScreen extends StatefulWidget {
   final Animal animal;
 
@@ -15,6 +27,13 @@ class VideoScreen extends StatefulWidget {
   State<VideoScreen> createState() => _VideoScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _VideoScreenState — el reproductor y el estado de la carga
+//
+// _c es el controlador del video (null hasta que carga), _seg el segmento que
+// encontré para este animal, y _cargando / _error me dicen qué mostrar
+// mientras tanto.
+// ---------------------------------------------------------------------------
 class _VideoScreenState extends State<VideoScreen> {
   // El botón salta 1 segundo antes de que aparezca la vaca.
   static const _antesDelAnimal = Duration(seconds: 1);
@@ -24,13 +43,24 @@ class _VideoScreenState extends State<VideoScreen> {
   bool _cargando = true;
   String? _error;
 
-  /// Momento del video donde aparece el animal.
+  // ---------------------------------------------------------------------------
+  // _momentoAnimal — a qué segundo del video tiene que saltar el botón
+  //
+  // _seg.inicio está en segundos; lo paso a milisegundos y le resto 1 segundo
+  // (_antesDelAnimal) para que se vea al animal llegar. Si da negativo, uso 0.
+  // ---------------------------------------------------------------------------
   Duration get _momentoAnimal {
     final ms = (((_seg?.inicio ?? 0) * 1000).round()) -
         _antesDelAnimal.inMilliseconds;
     return Duration(milliseconds: ms < 0 ? 0 : ms);
   }
 
+  // ---------------------------------------------------------------------------
+  // _formatear — pasa una duración a "m:ss"
+  //
+  // La uso para mostrar en el botón el momento al que va a saltar, por ejemplo
+  // "2:05". padLeft le pone el 0 a los segundos de un dígito.
+  // ---------------------------------------------------------------------------
   String _formatear(Duration d) {
     final min = d.inMinutes;
     final seg = (d.inSeconds % 60).toString().padLeft(2, '0');
@@ -43,6 +73,14 @@ class _VideoScreenState extends State<VideoScreen> {
     _cargar();
   }
 
+  // ---------------------------------------------------------------------------
+  // _cargar — busca el video del animal y lo prepara para reproducir
+  //
+  // Le pido a VideoService el último segmento donde aparece el rfidUid del
+  // animal. Si no hay, termino y build muestra "todavía no tiene video". Si
+  // hay, pido la URL firmada, creo el controlador y lo inicializo. Cualquier
+  // error lo guardo en _error. Los debugPrint muestran en consola qué pasó.
+  // ---------------------------------------------------------------------------
   Future<void> _cargar() async {
     try {
       final service = VideoService();
@@ -78,6 +116,11 @@ class _VideoScreenState extends State<VideoScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // _alternarPlayPause — el botón de play/pausa
+  //
+  // Si el video se está reproduciendo lo pauso, y si no, lo reproduzco.
+  // ---------------------------------------------------------------------------
   Future<void> _alternarPlayPause() async {
     final c = _c;
     if (c == null) return;
@@ -88,6 +131,12 @@ class _VideoScreenState extends State<VideoScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // _irAlAnimal — salta al momento del animal y reproduce
+  //
+  // Muevo el video a _momentoAnimal con seekTo y le doy play. Es lo que hace el
+  // botón grande de abajo.
+  // ---------------------------------------------------------------------------
   Future<void> _irAlAnimal() async {
     final c = _c;
     if (c == null) return;
@@ -109,6 +158,13 @@ class _VideoScreenState extends State<VideoScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // _cuerpo — qué muestro según cómo terminó la carga
+  //
+  // Cargando: ruedita. Error: el mensaje. Sin video: aviso con el RFID que
+  // busqué. Con video: el reproductor, la barra de progreso (se puede
+  // arrastrar), el play/pausa y el botón "Ir a donde aparece este animal".
+  // ---------------------------------------------------------------------------
   Widget _cuerpo() {
     if (_cargando) return const Center(child: CircularProgressIndicator());
     if (_error != null) {

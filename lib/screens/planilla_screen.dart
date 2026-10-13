@@ -1,3 +1,13 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - ../models/animal.dart: la clase Animal (animalId, categoría, apodo, etc.).
+// - ../services/animales_service.dart: trae y crea animales en Supabase.
+// - ../services/lecturas_service.dart: las lecturas del lector RFID; de ahí
+//   salen los tags "no registrados".
+// - ../widgets/dialogo_alta_animal.dart: el diálogo para dar de alta un animal.
+// - ../theme/app_theme.dart: AppColors, los colores generales de la app.
+// - ../widgets/animal_card.dart y categoria_badge.dart: la tarjeta de cada
+//   animal y la etiqueta de color de su categoría.
 import 'package:flutter/material.dart';
 
 import '../models/animal.dart';
@@ -12,8 +22,15 @@ import 'configuracion_screen.dart';
 import 'conteo_screen.dart';
 import 'detalle_animal_screen.dart';
 
-/// Pantalla 2 — planilla general: lista los animales vivos del campo
-/// seleccionado, con busqueda por rfid_uid y filtro por categoria.
+// ============================================================
+// planilla_screen — Pantalla 2 del flujo
+//
+// Qué hace este archivo:
+// Es la planilla general del campo que elegí: la lista de animales vivos, con
+// buscador y filtro por categoría. Abajo muestro los tags que leyó el lector
+// pero que no son de ningún animal ("No registrados"), y el botón para
+// arrancar el conteo.
+// ============================================================
 class PlanillaScreen extends StatefulWidget {
   final Campo campo;
 
@@ -23,6 +40,13 @@ class PlanillaScreen extends StatefulWidget {
   State<PlanillaScreen> createState() => _PlanillaScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _PlanillaScreenState — el estado de la planilla
+//
+// Tengo dos Future que arrancan en initState: los animales del campo y los
+// tags no registrados. _categoriaFiltro guarda la categoría elegida en el
+// desplegable (null = todas) y _categorias es la lista fija de opciones.
+// ---------------------------------------------------------------------------
 class _PlanillaScreenState extends State<PlanillaScreen> {
   final _animalesService = AnimalesService();
   final _lecturasService = LecturasService();
@@ -53,6 +77,13 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     super.dispose();
   }
 
+  // ---------------------------------------------------------------------------
+  // _recargar — vuelve a pedir animales y no registrados
+  //
+  // Reemplazo los dos Future dentro de un setState y los FutureBuilder se
+  // redibujan solos. Lo llamo al tirar para abajo la lista (RefreshIndicator),
+  // después de agregar o borrar un tag, y al volver del conteo.
+  // ---------------------------------------------------------------------------
   Future<void> _recargar() async {
     setState(() {
       _futureAnimales = _animalesService.traerAnimalesDeCampo(widget.campo.id);
@@ -60,11 +91,24 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // _eliminarNoRegistrado — descarta un tag de la lista de no registrados
+  //
+  // Le pido a LecturasService que descarte ese tag en este campo y recargo.
+  // No lo llamo directo desde el botón: primero pasa por _confirmarEliminar.
+  // ---------------------------------------------------------------------------
   Future<void> _eliminarNoRegistrado(String rfidUid) async {
     await _lecturasService.descartarTag(rfidUid, widget.campo.id);
     _recargar();
   }
 
+  // ---------------------------------------------------------------------------
+  // _confirmarEliminar — pregunta "¿estás seguro?" antes de borrar un tag
+  //
+  // Muestro un diálogo que devuelve true (Eliminar) o false (Cancelar). Solo si
+  // vuelve true llamo a _eliminarNoRegistrado. Así nadie borra un tag por tocar
+  // sin querer.
+  // ---------------------------------------------------------------------------
     Future<void> _confirmarEliminar(String rfidUid) async {
     final confirmado = await showDialog<bool>(
       context: context,
@@ -93,6 +137,13 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     }
   }
   
+  // ---------------------------------------------------------------------------
+  // _agregarNoRegistrado — convierte un tag suelto en un animal nuevo
+  //
+  // Abro DialogoAltaAnimal para que carguen categoría, animalId, apodo y raza.
+  // Si no cancelan, creo el animal en Supabase con ese rfid_uid y este campo, y
+  // recargo: el tag desaparece de "No registrados" y el animal entra a la lista.
+  // ---------------------------------------------------------------------------
   Future<void> _agregarNoRegistrado(String rfidUid) async {
     final datos = await showDialog<DatosAltaAnimal>(
       context: context,
@@ -110,6 +161,13 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     _recargar();
   }
 
+  // ---------------------------------------------------------------------------
+  // _filtrar — aplica el buscador y el filtro de categoría a la lista
+  //
+  // Me quedo con los animales cuyo animalId contiene lo que se escribió (sin
+  // importar mayúsculas) y que además son de la categoría elegida. Si el
+  // buscador está vacío o la categoría es "Todas", esa condición no filtra.
+  // ---------------------------------------------------------------------------
   List<Animal> _filtrar(List<Animal> animales, String busqueda) {
     return animales.where((animal) {
       final coincideBusqueda =
@@ -121,6 +179,14 @@ class _PlanillaScreenState extends State<PlanillaScreen> {
     }).toList();
   }
 
+  // ---------------------------------------------------------------------------
+  // build — buscador, filtro, lista de animales, no registrados y "Iniciar Conteo"
+  //
+  // Arriba van el buscador y el desplegable de categoría. En el medio, la lista
+  // de AnimalCard (cada una abre el detalle). Abajo, los no registrados con
+  // "Eliminar" y "Añadir", y el botón que abre ConteoScreen con los animales ya
+  // cargados. Al volver del conteo recargo todo.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(

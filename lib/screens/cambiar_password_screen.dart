@@ -1,15 +1,23 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - supabase_flutter: acá lo uso por AuthException, el error que tira Supabase
+//   cuando algo de la sesión o la contraseña sale mal.
+// - ../widgets/password_checklist.dart: la lista de requisitos de la
+//   contraseña, la misma que en el registro.
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/auth_service.dart';
 import '../widgets/password_checklist.dart';
 
-/// Pantalla para cambiar la contraseña estando ya logueado — se llega acá
-/// desde "Informacion Personal". Pide la contraseña actual (se verifica de
-/// verdad contra Supabase) y despues la nueva, con el mismo checklist de
-/// requisitos que usa la pantalla de registro (8 caracteres, letra, numero).
-/// No depende del mail — por eso funciona aunque el flujo de "olvide mi
-/// contraseña" siga sin andar.
+// ============================================================
+// cambiar_password_screen — Sub-pantalla de Información Personal
+//
+// Qué hace este archivo:
+// Cambio la contraseña estando ya logueado. Pido la actual (que Supabase
+// verifica) y la nueva, con el mismo checklist de requisitos del registro.
+// No depende de ningún mail, así que anda aunque falle la recuperación.
+// ============================================================
 class CambiarPasswordScreen extends StatefulWidget {
   const CambiarPasswordScreen({super.key});
 
@@ -17,6 +25,14 @@ class CambiarPasswordScreen extends StatefulWidget {
   State<CambiarPasswordScreen> createState() => _CambiarPasswordScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _CambiarPasswordScreenState — el formulario y su estado
+//
+// Tengo un controller por campo, _formKey para validar los dos juntos,
+// _mostrarActual/_mostrarNueva para el ojito de cada campo, _cargando para
+// el botón y _error para el mensaje en rojo. _passwordEsValida le pregunta
+// al PasswordChecklist si la nueva cumple todo.
+// ---------------------------------------------------------------------------
 class _CambiarPasswordScreenState extends State<CambiarPasswordScreen> {
   final _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
@@ -38,6 +54,14 @@ class _CambiarPasswordScreenState extends State<CambiarPasswordScreen> {
     super.dispose();
   }
 
+  // ---------------------------------------------------------------------------
+  // _cambiar — verifica la actual y guarda la nueva
+  //
+  // Primero valido el formulario. Después verifico la contraseña actual contra
+  // Supabase; si está mal, muestro el error y corto. Si está bien, cambio la
+  // contraseña, vuelvo atrás y aviso con un SnackBar. Si Supabase tira un
+  // AuthException, muestro su mensaje.
+  // ---------------------------------------------------------------------------
   Future<void> _cambiar() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -66,6 +90,13 @@ class _CambiarPasswordScreenState extends State<CambiarPasswordScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // build — los dos campos, el checklist y el botón
+  //
+  // Es un Form con dos TextFormField: cada uno tiene su validator y un ojito
+  // para mostrar u ocultar lo que se escribe. Debajo de la nueva va el
+  // checklist de requisitos, después el error (si hay) y el botón.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(

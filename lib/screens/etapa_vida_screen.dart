@@ -1,10 +1,18 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - ../services/animales_service.dart: guarda la etapa de vida en Supabase.
 import 'package:flutter/material.dart';
 
 import '../models/animal.dart';
 import '../services/animales_service.dart';
 
-/// Pantalla para editar la etapa de vida de un animal — se llega acá
-/// tocando el botón "Etapa de Vida" en la ficha del animal (Pantalla 4).
+// ============================================================
+// etapa_vida_screen — Sub-pantalla de la Pantalla 4 (ficha del animal)
+//
+// Qué hace este archivo:
+// Acá edito la etapa de vida del animal: desde "Muy joven" hasta "Adulto
+// mayor". Está armada igual que condición corporal y estado fértil.
+// ============================================================
 class EtapaVidaScreen extends StatefulWidget {
   final Animal animal;
 
@@ -14,6 +22,12 @@ class EtapaVidaScreen extends StatefulWidget {
   State<EtapaVidaScreen> createState() => _EtapaVidaScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _EtapaVidaScreenState — la opción elegida y si estoy guardando
+//
+// _etapaSeleccionada arranca con la etapa que ya tenía el animal, y
+// _guardando deshabilita el botón mientras espero a Supabase.
+// ---------------------------------------------------------------------------
 class _EtapaVidaScreenState extends State<EtapaVidaScreen> {
   final _animalesService = AnimalesService();
   String? _etapaSeleccionada;
@@ -25,6 +39,12 @@ class _EtapaVidaScreenState extends State<EtapaVidaScreen> {
     _etapaSeleccionada = widget.animal.etapaVida;
   }
 
+  // ---------------------------------------------------------------------------
+  // _guardar — guarda en Supabase y vuelve a la ficha
+  //
+  // Actualizo la etapa con AnimalesService y hago pop devolviendo una copia del
+  // animal con el valor nuevo, para que la ficha actualice el chip.
+  // ---------------------------------------------------------------------------
   Future<void> _guardar() async {
     setState(() => _guardando = true);
     try {
@@ -42,6 +62,12 @@ class _EtapaVidaScreenState extends State<EtapaVidaScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // build — el desplegable con las 5 etapas y el botón Guardar
+  //
+  // En Supabase se guarda el value de cada opción (por ejemplo "para_destetar"),
+  // escrito sin espacios ni mayúsculas; lo que se ve es el texto lindo.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(

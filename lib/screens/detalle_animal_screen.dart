@@ -1,3 +1,12 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - ../widgets/condicion_corporal_chip.dart, estado_fertil_chip.dart y
+//   etapa_vida_chip.dart: los chips de color que muestran el valor actual a la
+//   derecha de cada fila.
+// - Las sub-pantallas de edición (condición corporal, estado fértil, etapa de
+//   vida, vacunas, observaciones y video), que abro desde cada fila.
+// - ../services/animales_service.dart y ../widgets/dialogo_alta_animal.dart:
+//   para editar los datos básicos con el lápiz.
 import 'package:flutter/material.dart';
 
 import '../models/animal.dart';
@@ -16,6 +25,15 @@ import 'video_screen.dart';
 import '../services/animales_service.dart';
 import '../widgets/dialogo_alta_animal.dart';
 
+// ============================================================
+// detalle_animal_screen — Pantalla 4 del flujo
+//
+// Qué hace este archivo:
+// Es la ficha de un animal. Arriba muestro su categoría y su nombre con un
+// lápiz para editarlo, y abajo un menú con cada dato (raza, condición
+// corporal, estado fértil, etapa de vida, vacunas, observaciones y video).
+// Cada fila abre su sub-pantalla.
+// ============================================================
 class DetalleAnimalScreen extends StatefulWidget {
   final Animal animal;
   final Campo campo;
@@ -30,6 +48,13 @@ class DetalleAnimalScreen extends StatefulWidget {
   State<DetalleAnimalScreen> createState() => _DetalleAnimalScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _DetalleAnimalScreenState — el estado de la ficha
+//
+// Guardo una copia del animal en _animal. Arranca con el que me pasaron, y la
+// reemplazo cada vez que una sub-pantalla o el lápiz me devuelven el animal
+// actualizado, así la ficha muestra siempre lo último sin volver a Supabase.
+// ---------------------------------------------------------------------------
 class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
   late Animal _animal;
 
@@ -39,6 +64,13 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     _animal = widget.animal;
   }
 
+  // ---------------------------------------------------------------------------
+  // _abrir — abre una sub-pantalla y recibe el animal actualizado
+  //
+  // Hago push de la pantalla que me pasen y espero a que vuelva. Si me devuelve
+  // un Animal (porque se guardó algo), lo pongo en _animal con setState y los
+  // chips se actualizan. Si vuelven sin guardar, llega null y no cambio nada.
+  // ---------------------------------------------------------------------------
   Future<void> _abrir(Widget pantalla) async {
     final resultado = await Navigator.of(
       context,
@@ -48,6 +80,13 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // _editar — editar los datos básicos (lápiz y fila de Raza)
+  //
+  // Reuso DialogoAltaAnimal, pero precargado con los datos actuales del animal.
+  // Si no cancelan, guardo los cambios con AnimalesService y me quedo con el
+  // animal que me devuelve Supabase.
+  // ---------------------------------------------------------------------------
   Future<void> _editar() async {
     final datos = await showDialog<DatosAltaAnimal>(
       context: context,
@@ -69,8 +108,22 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
     if (mounted) setState(() => _animal = actualizado);
   }
 
+  // ---------------------------------------------------------------------------
+  // _categoriasHembra — qué categorías son hembras
+  //
+  // La uso en build para decidir si muestro la fila de Estado Fértil: solo
+  // tiene sentido para vaca, ternera y vaquillona.
+  // ---------------------------------------------------------------------------
   static const _categoriasHembra = {'vaca', 'ternera', 'vaquillona'};
 
+  // ---------------------------------------------------------------------------
+  // build — encabezado con nombre y lápiz, y el menú de datos del animal
+  //
+  // Arriba, el CategoriaBadge y el nombre centrados (el SizedBox de 48 a la
+  // izquierda compensa el ancho del lápiz). Abajo, una _FilaMenu por dato.
+  // Condición, estado fértil, etapa y observaciones se abren con _abrir;
+  // Vacunas y Video con un push común, sin esperar nada de vuelta.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final esHembra = _categoriasHembra.contains(_animal.categoria);
@@ -170,6 +223,13 @@ class _DetalleAnimalScreenState extends State<DetalleAnimalScreen> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// _FilaMenu — una fila del menú de la ficha
+//
+// Es un ListTile con ícono (o una imagen de assets), el nombre del dato y, a
+// la derecha, el chip con el valor actual. El assert obliga a pasar ícono o
+// imagen. Al trailing le pongo un ancho máximo para que no tape el texto.
+// ---------------------------------------------------------------------------
 class _FilaMenu extends StatelessWidget {
   final IconData? icono;
   final String? imagen; // ruta de un asset, en lugar del ícono

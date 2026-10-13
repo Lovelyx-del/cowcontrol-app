@@ -1,11 +1,19 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - ../services/animales_service.dart: guarda el estado fértil en Supabase.
 import 'package:flutter/material.dart';
 
 import '../models/animal.dart';
 import '../services/animales_service.dart';
 
-/// Pantalla para editar el estado fertil de un animal — se llega acá
-/// tocando el botón "Estado Fertil" en la ficha del animal (Pantalla 4).
-/// Solo aparece para hembras (`categoria == 'hembra'`).
+// ============================================================
+// estado_fertil_screen — Sub-pantalla de la Pantalla 4 (ficha del animal)
+//
+// Qué hace este archivo:
+// Acá edito el estado fértil: Preñada, Amamantando o No fecundada. La fila que
+// abre esta pantalla solo aparece en la ficha si el animal es hembra (vaca,
+// ternera o vaquillona; eso lo decide detalle_animal_screen).
+// ============================================================
 class EstadoFertilScreen extends StatefulWidget {
   final Animal animal;
 
@@ -15,6 +23,13 @@ class EstadoFertilScreen extends StatefulWidget {
   State<EstadoFertilScreen> createState() => _EstadoFertilScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _EstadoFertilScreenState — la opción elegida y si estoy guardando
+//
+// Es igual que en condición corporal: _estadoSeleccionado arranca con el valor
+// que ya tenía el animal, y _guardando deshabilita el botón mientras espero a
+// Supabase.
+// ---------------------------------------------------------------------------
 class _EstadoFertilScreenState extends State<EstadoFertilScreen> {
   final _animalesService = AnimalesService();
   String? _estadoSeleccionado;
@@ -26,6 +41,12 @@ class _EstadoFertilScreenState extends State<EstadoFertilScreen> {
     _estadoSeleccionado = widget.animal.estadoFertil;
   }
 
+  // ---------------------------------------------------------------------------
+  // _guardar — guarda en Supabase y vuelve a la ficha
+  //
+  // Actualizo el estado fértil con AnimalesService y hago pop devolviendo una
+  // copia del animal con el valor nuevo, para que la ficha actualice el chip.
+  // ---------------------------------------------------------------------------
   Future<void> _guardar() async {
     setState(() => _guardando = true);
     try {
@@ -43,6 +64,12 @@ class _EstadoFertilScreenState extends State<EstadoFertilScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // build — el desplegable con los 3 estados y el botón Guardar
+  //
+  // En Supabase se guarda el value de cada opción ("preñada", "amamantando" o
+  // "no-fecundada"); lo que se ve es el texto con mayúscula.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(

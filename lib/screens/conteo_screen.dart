@@ -1,3 +1,14 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - supabase_flutter: acá lo necesito por el tipo RealtimeChannel, que es el
+//   canal que queda escuchando las lecturas nuevas.
+// - ../models/lectura.dart: la clase Lectura (una fila de datos_lectura, con
+//   el rfidUid que leyó el lector).
+// - ../services/conteos_service.dart: crea, pausa, reanuda y finaliza la fila
+//   del conteo en la tabla conteos.
+// - ../services/lecturas_service.dart: abre y cierra la escucha en tiempo real.
+// - ../services/animales_service.dart y ../widgets/dialogo_alta_animal.dart:
+//   para dar de alta ahí mismo un tag sin identificar.
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -12,13 +23,16 @@ import '../widgets/animal_card.dart';
 import '../widgets/dialogo_alta_animal.dart';
 import 'detalle_animal_screen.dart';
 
-/// Pantalla 3 — conteo en vivo. Escucha datos_lectura por Supabase Realtime y
-/// marca cada animal apenas llega su lectura. Ademas maneja la fila en
-/// `conteos`, que la Raspberry Pi consulta para saber a que conteo activo
-/// mandarle las lecturas que va leyendo. Las lecturas que no coinciden con
-/// ningun animal cargado quedan en una lista aparte de "sin identificar",
-/// para que el productor les asigne categoria ahi mismo, viendo el animal
-/// pasar en persona.
+// ============================================================
+// conteo_screen — Pantalla 3 del flujo
+//
+// Qué hace este archivo:
+// Es el conteo en vivo. Escucho las lecturas del lector RFID por Supabase
+// Realtime y marco cada animal apenas pasa. Además manejo la fila del conteo
+// en la tabla conteos, que es la que consulta la Raspberry Pi para saber a
+// qué conteo mandarle lo que lee. Los tags que no son de nadie van a una
+// lista de "Sin identificar" para darlos de alta ahí mismo.
+// ============================================================
 class ConteoScreen extends StatefulWidget {
   final Campo campo;
   final List<Animal> animales;
@@ -29,6 +43,14 @@ class ConteoScreen extends StatefulWidget {
   State<ConteoScreen> createState() => _ConteoScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _ConteoScreenState — el estado del conteo
+//
+// _idsDetectados es un Set (no repite) con los animales que ya pasaron, y
+// _sinIdentificar los tags que no son de nadie. _animales es una copia de la
+// lista de la planilla, así le puedo sumar los que doy de alta acá. _canal es
+// la escucha de Realtime y _conteoId la fila del conteo en Supabase.
+// ---------------------------------------------------------------------------
 class _ConteoScreenState extends State<ConteoScreen> {
   final _lecturasService = LecturasService();
   final _conteosService = ConteosService();
@@ -48,11 +70,25 @@ class _ConteoScreenState extends State<ConteoScreen> {
     _inicializarConteo();
   }
 
+  // ---------------------------------------------------------------------------
+  // _inicializarConteo — crea o retoma el conteo y empieza a escuchar
+  //
+  // Le pido a ConteosService un conteo para este campo: si había uno pausado
+  // lo reanuda, y si no, crea uno nuevo. Me guardo su id y recién ahí abro la
+  // escucha de lecturas. Lo llamo desde initState.
+  // ---------------------------------------------------------------------------
   Future<void> _inicializarConteo() async {
     _conteoId = await _conteosService.iniciarOReanudar(widget.campo.id);
     _empezarAEscuchar();
   }
 
+  // ---------------------------------------------------------------------------
+  // _empezarAEscuchar — abre el canal de Realtime
+  //
+  // LecturasService se suscribe a las lecturas nuevas de este campo y, cada vez
+  // que llega una, llama a _marcarLectura. Guardo el canal en _canal para
+  // poder cerrarlo después (al detener, al finalizar o al salir de la pantalla).
+  // ---------------------------------------------------------------------------
   void _empezarAEscuchar() {
     _canal = _lecturasService.escucharNuevasLecturas(
       campoId: widget.campo.id,
@@ -60,6 +96,14 @@ class _ConteoScreenState extends State<ConteoScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // _marcarLectura — qué hago con cada lectura que llega
+  //
+  // Busco el animal que tenga el mismo rfidUid que la lectura. Si lo encuentro,
+  // lo agrego a _idsDetectados y su tarjeta se marca como detectada. Si no es
+  // de ningún animal, el tag va a "Sin identificar", una sola vez aunque el
+  // lector lo vuelva a leer.
+  // ---------------------------------------------------------------------------
   void _marcarLectura(Lectura lectura) {
     Animal? animalCoincidente;
     for (final animal in _animales) {
@@ -77,6 +121,13 @@ class _ConteoScreenState extends State<ConteoScreen> {
     setState(() => _idsDetectados.add(animalCoincidente!.id));
   }
 
+  // ---------------------------------------------------------------------------
+  // _asignarCategoria — dar de alta un tag sin identificar en el momento
+  //
+  // Abro el mismo DialogoAltaAnimal de la planilla. Si no cancelan, creo el
+  // animal en Supabase con el rfidUid del tag, lo saco de "Sin identificar",
+  // lo sumo a la lista y lo marco como detectado, porque ya pasó por el lector.
+  // ---------------------------------------------------------------------------
   Future<void> _asignarCategoria(String rfidUid) async {
     final datos = await showDialog<DatosAltaAnimal>(
       context: context,
@@ -98,6 +149,13 @@ class _ConteoScreenState extends State<ConteoScreen> {
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // _detener — pausa el conteo
+  //
+  // Cierro la escucha de Realtime y marco el conteo como pausado en la tabla
+  // conteos (la que consulta la Pi). El botón pasa a decir "Reanudar". Chequeo
+  // `mounted` antes del setState por si ya se fueron de la pantalla.
+  // ---------------------------------------------------------------------------
   Future<void> _detener() async {
     if (_canal != null) {
       await _lecturasService.dejarDeEscuchar(_canal!);
@@ -109,6 +167,13 @@ class _ConteoScreenState extends State<ConteoScreen> {
     if (mounted) setState(() => _enPausa = true);
   }
 
+  // ---------------------------------------------------------------------------
+  // _reanudar — vuelve a activar el conteo pausado
+  //
+  // Es lo contrario de _detener: reanudo el conteo en Supabase y vuelvo a abrir
+  // la escucha. Lo que ya estaba detectado no se pierde, porque _idsDetectados
+  // sigue en memoria.
+  // ---------------------------------------------------------------------------
   Future<void> _reanudar() async {
     if (_conteoId != null) {
       await _conteosService.reanudar(_conteoId!);
@@ -117,6 +182,12 @@ class _ConteoScreenState extends State<ConteoScreen> {
     if (mounted) setState(() => _enPausa = false);
   }
 
+  // ---------------------------------------------------------------------------
+  // _finalizar — cierra el conteo y vuelve a la planilla
+  //
+  // Cierro la escucha, marco el conteo como finalizado en Supabase y hago pop.
+  // Al volver, la planilla recarga todo (eso está en planilla_screen).
+  // ---------------------------------------------------------------------------
   Future<void> _finalizar() async {
     if (_canal != null) {
       await _lecturasService.dejarDeEscuchar(_canal!);
@@ -128,6 +199,16 @@ class _ConteoScreenState extends State<ConteoScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  // ---------------------------------------------------------------------------
+  // dispose — cierro la escucha al salir de la pantalla
+  //
+  // Si no cierro el canal, Realtime sigue mandando lecturas a una pantalla que
+  // ya no existe. Ojo: acá solo dejo de escuchar, el conteo no se pausa ni se
+  // finaliza en Supabase.
+  // TODO: revisar en la presentación — si salen con la flecha de atrás, el
+  // conteo no queda pausado en la tabla conteos, y iniciarOReanudar solo
+  // retoma los pausados.
+  // ---------------------------------------------------------------------------
   @override
   void dispose() {
     if (_canal != null) {
@@ -136,6 +217,14 @@ class _ConteoScreenState extends State<ConteoScreen> {
     super.dispose();
   }
 
+  // ---------------------------------------------------------------------------
+  // build — contador, aviso, lista de animales, sin identificar y botones
+  //
+  // Arriba, el "X / Y detectados". Si hay tags sin identificar, un aviso bordó
+  // que pide pausar para completar sus datos. En el medio, las AnimalCard y
+  // después los "Sin identificar" (tocar uno abre _asignarCategoria). Abajo,
+  // Detener/Reanudar (según _enPausa) y Finalizar.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(

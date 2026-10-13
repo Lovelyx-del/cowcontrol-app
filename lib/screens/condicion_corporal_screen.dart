@@ -1,13 +1,19 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - ../services/animales_service.dart: guarda la condición corporal en Supabase.
 import 'package:flutter/material.dart';
 
 import '../models/animal.dart';
 import '../services/animales_service.dart';
 
-/// Pantalla para editar la condicion corporal de un animal — se llega acá
-/// tocando el botón "Condicion Corporal" en la ficha del animal (Pantalla 4).
-/// Las 3 categorias (Buena/Regular/Mala) se guardan igual que antes; los
-/// rangos que se muestran al lado de cada una son de referencia (escala de
-/// Condicion Corporal 1 a 5 que usa el INTA), no se guardan como numero.
+// ============================================================
+// condicion_corporal_screen — Sub-pantalla de la Pantalla 4 (ficha del animal)
+//
+// Qué hace este archivo:
+// Acá edito la condición corporal del animal: Buena, Regular o Mala. Al lado
+// de cada opción muestro el rango de la escala 1 a 5 del INTA, pero es solo de
+// referencia: en Supabase se guarda la palabra, no el número.
+// ============================================================
 class CondicionCorporalScreen extends StatefulWidget {
   final Animal animal;
 
@@ -18,6 +24,13 @@ class CondicionCorporalScreen extends StatefulWidget {
       _CondicionCorporalScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _CondicionCorporalScreenState — la opción elegida y si estoy guardando
+//
+// _condicionSeleccionada arranca con el valor que ya tenía el animal (o null
+// si no tenía). _guardando lo uso para deshabilitar el botón mientras espero
+// a Supabase, así no se guarda dos veces.
+// ---------------------------------------------------------------------------
 class _CondicionCorporalScreenState extends State<CondicionCorporalScreen> {
   final _animalesService = AnimalesService();
   String? _condicionSeleccionada;
@@ -29,6 +42,13 @@ class _CondicionCorporalScreenState extends State<CondicionCorporalScreen> {
     _condicionSeleccionada = widget.animal.condicionCorporal;
   }
 
+  // ---------------------------------------------------------------------------
+  // _guardar — guarda en Supabase y vuelve a la ficha
+  //
+  // Actualizo el animal con AnimalesService y hago pop devolviendo una copia
+  // del animal con el valor nuevo (copyWith). Así la ficha se actualiza sin
+  // volver a pedirlo. El finally apaga _guardando aunque falle.
+  // ---------------------------------------------------------------------------
   Future<void> _guardar() async {
     setState(() => _guardando = true);
     try {
@@ -46,6 +66,13 @@ class _CondicionCorporalScreenState extends State<CondicionCorporalScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // build — el desplegable con las 3 opciones y el botón Guardar
+  //
+  // Cada opción del desplegable es una _FilaCondicion. Si el animal no tenía
+  // dato, se ve "Sin dato". Mientras guardo, el botón muestra una ruedita en
+  // lugar del texto y queda deshabilitado.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,11 +127,13 @@ class _CondicionCorporalScreenState extends State<CondicionCorporalScreen> {
   }
 }
 
-/// Una fila del desplegable de Condicion Corporal — la categoria a la
-/// izquierda y el rango numerico de referencia a la derecha. `Expanded` en
-/// vez de confiar solo en `spaceBetween`: asi siempre queda un espacio entre
-/// las dos, aunque el propio campo no se estire (era el motivo del bug
-/// visual "3.5Regular" pegados, cuando faltaba `isExpanded` en el dropdown).
+// ---------------------------------------------------------------------------
+// _FilaCondicion — una opción del desplegable
+//
+// La categoría a la izquierda y el rango de referencia en gris a la derecha.
+// Uso Expanded en la etiqueta para que siempre quede espacio entre las dos;
+// antes se veía "3.5Regular" todo pegado.
+// ---------------------------------------------------------------------------
 class _FilaCondicion extends StatelessWidget {
   final String rango;
   final String etiqueta;

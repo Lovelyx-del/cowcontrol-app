@@ -1,3 +1,17 @@
+// ---------------------------------------------------------------------------
+// Imports — las librerías que uso acá (y en casi todas las otras pantallas)
+//
+// - flutter/material.dart: la base de todo. Me da los widgets de Material
+//   (Scaffold, TextFormField, botones, colores, temas). Sin esto no hay UI.
+// - supabase_flutter: el paquete de Supabase. Acá lo uso por AuthException,
+//   que es el tipo de error que tira Supabase Auth cuando algo sale mal.
+// - ../services/auth_service.dart: la clase que envuelve login, registro y
+//   recuperar contraseña. La pantalla no le habla directo a Supabase para eso.
+// - ../widgets/password_checklist.dart: la lista de requisitos de contraseña
+//   que se va tildando mientras escribís.
+// - verificar_codigo_screen.dart: la pantalla a la que mando al usuario
+//   después de tocar "¿Olvidaste tu contraseña?".
+// ---------------------------------------------------------------------------
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,7 +19,23 @@ import '../services/auth_service.dart';
 import '../widgets/password_checklist.dart';
 import 'verificar_codigo_screen.dart';
 
-/// Paleta celeste solo para el login (el resto de la app mantiene AppTheme).
+// ============================================================
+// login_screen — Pantalla 0 del flujo
+//
+// Qué hace este archivo:
+// Es la pantalla de login y registro, las dos en una. Armé un formulario de
+// email y contraseña, y con un botón abajo cambio entre "entrar" y "crear
+// cuenta". Si el login sale bien no navego yo: AuthGate (main.dart) detecta
+// la sesión nueva y muestra la Pantalla 1 solo.
+// ============================================================
+
+// ---------------------------------------------------------------------------
+// _LoginColors — la paleta celeste que uso solo en el login
+//
+// El resto de la app usa AppTheme, pero para el login quise algo celeste.
+// Junto los colores acá como constantes para no repetir códigos hex por todos
+// lados: si cambio uno acá, cambia en toda la pantalla.
+// ---------------------------------------------------------------------------
 class _LoginColors {
   static const fondo = Color(0xFFEAF4FC);
   static const celesteClaro = Color(0xFFBFE0F5); // bordes de los campos
@@ -13,8 +43,14 @@ class _LoginColors {
   static const texto = Color(0xFF12344D);
 }
 
-/// Traduce los codigos de error de Supabase Auth a mensajes en español que un
-/// productor pueda entender, sin exponer el detalle tecnico de la excepcion.
+// ---------------------------------------------------------------------------
+// _mensajeError — traduce los errores de Supabase a mensajes en español
+//
+// Supabase devuelve códigos en inglés como 'invalid_credentials'. Acá los paso
+// a frases que un productor entienda, sin mostrarle el detalle técnico. Si el
+// código no está en la lista, devuelvo el mensaje genérico que me pasan. Lo
+// uso en _enviar y en _recuperarPassword.
+// ---------------------------------------------------------------------------
 String _mensajeError(Object error, {required String mensajeGenerico}) {
   if (error is AuthException) {
     switch (error.code) {
@@ -35,9 +71,6 @@ String _mensajeError(Object error, {required String mensajeGenerico}) {
   return mensajeGenerico;
 }
 
-/// Pantalla 0 — login/registro con Supabase Auth. Al loguearse con exito no
-/// navega a mano: AuthGate (main.dart) escucha el cambio de sesion y muestra
-/// la Pantalla 1 automaticamente.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -45,6 +78,13 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+// ---------------------------------------------------------------------------
+// _LoginScreenState — el estado de la pantalla
+//
+// Acá guardo los controllers de los dos campos y unas banderas. La clave es
+// _esRegistro: con eso la misma pantalla sirve para entrar o para crear una
+// cuenta, y cambian los textos, el checklist y lo que hace el botón.
+// ---------------------------------------------------------------------------
 class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
@@ -70,6 +110,14 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // ---------------------------------------------------------------------------
+  // _enviar — lo que pasa cuando toco el botón principal
+  //
+  // Primero valido el formulario. En modo registro llamo a registrarse y miro
+  // si "identities" vino vacía: así sé que el mail ya tenía cuenta (Supabase no
+  // tira error en ese caso). En modo login llamo a iniciarSesion y nada más,
+  // AuthGate se encarga del resto. Si algo falla, muestro _mensajeError.
+  // ---------------------------------------------------------------------------
   Future<void> _enviar() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -119,9 +167,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Manda el mail de "restablecer contraseña" (Supabase.resetPasswordForEmail)
-  /// y lleva a la pantalla para escribir el código de 6 dígitos que trae ese
-  /// mail — se confirma adentro de la app, no hace falta abrir el link.
+  // ---------------------------------------------------------------------------
+  // _recuperarPassword — el botón "¿Olvidaste tu contraseña?"
+  //
+  // Uso el email que ya está escrito arriba (si no hay, aviso). Le pido a
+  // Supabase que mande el mail de restablecer y abro VerificarCodigoScreen
+  // para que el usuario escriba ahí el código de 6 dígitos, sin abrir el link.
+  // ---------------------------------------------------------------------------
   Future<void> _recuperarPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
@@ -158,7 +210,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Tema celeste que solo vale dentro de esta pantalla.
+  // ---------------------------------------------------------------------------
+  // _temaLogin — el tema celeste que vale solo dentro de esta pantalla
+  //
+  // Parto del tema general de la app y le piso los colores con _LoginColors:
+  // fondo, botones, bordes de los campos y el label cuando el campo tiene foco.
+  // En build envuelvo todo en un Theme con esto, así no toco el resto de la app.
+  // ---------------------------------------------------------------------------
   ThemeData _temaLogin(BuildContext context) {
     final base = Theme.of(context);
     OutlineInputBorder borde(Color color, {double ancho = 1}) =>
@@ -201,6 +259,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // build — arma la pantalla: logo, campos, mensajes y botones
+  //
+  // Es un Form con los dos campos y sus validadores. Según _esRegistro muestro
+  // el checklist de contraseña o el link de "olvidé mi contraseña". El botón
+  // principal se deshabilita y muestra una ruedita mientras _cargando es true,
+  // así nadie lo toca dos veces.
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Theme(

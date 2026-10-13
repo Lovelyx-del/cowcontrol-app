@@ -1,3 +1,7 @@
+// Imports — los mismos que login_screen.dart (ver explicación de cada librería ahí).
+// Solo agrego las librerías específicas de esta pantalla, si las hay.
+// - ../models/campo.dart: la clase Campo (id, nombre y ubicación de un campo).
+// - ../services/campos_service.dart: el que trae y crea campos en Supabase.
 import 'package:flutter/material.dart';
 
 import '../models/campo.dart';
@@ -5,9 +9,14 @@ import '../services/auth_service.dart';
 import '../services/campos_service.dart';
 import 'planilla_screen.dart';
 
-/// Pantalla 1 — lista los campos del productor logueado (filtrados por RLS).
-/// Si tiene uno solo, entra directo a la planilla; si no tiene ninguno,
-/// ofrece crear el primero.
+// ============================================================
+// selector_campo_screen — Pantalla 1 del flujo
+//
+// Qué hace este archivo:
+// Muestro la lista de campos del productor que inició sesión (Supabase ya me
+// filtra solo los suyos con RLS). Si tiene uno solo, lo mando directo a la
+// planilla; si no tiene ninguno, le ofrezco crear el primero.
+// ============================================================
 class SelectorCampoScreen extends StatefulWidget {
   const SelectorCampoScreen({super.key});
 
@@ -27,6 +36,13 @@ class _SelectorCampoScreenState extends State<SelectorCampoScreen> {
     _futureCampos = _cargarCampos();
   }
 
+  // ---------------------------------------------------------------------------
+  // _cargarCampos — trae los campos y, si hay uno solo, entra directo
+  //
+  // Le pido los campos a CamposService. Si vuelve exactamente uno, espero a que
+  // termine de dibujarse el frame (addPostFrameCallback) y reemplazo esta
+  // pantalla por la planilla de ese campo. _recargar lo vuelve a llamar.
+  // ---------------------------------------------------------------------------
   Future<List<Campo>> _cargarCampos() async {
     final campos = await _camposService.traerCampos();
     if (campos.length == 1) {
@@ -46,6 +62,13 @@ class _SelectorCampoScreenState extends State<SelectorCampoScreen> {
     setState(() => _futureCampos = _cargarCampos());
   }
 
+  // ---------------------------------------------------------------------------
+  // _crearCampo — abre el diálogo de campo nuevo y lo guarda
+  //
+  // Muestro _FormularioNuevoCampo como diálogo y espero lo que devuelve. Si el
+  // usuario canceló, viene null y no hago nada. Si no, lo creo en Supabase y
+  // recargo la lista para que aparezca el campo nuevo.
+  // ---------------------------------------------------------------------------
   Future<void> _crearCampo() async {
     final resultado = await showDialog<_DatosNuevoCampo>(
       context: context,
@@ -59,6 +82,14 @@ class _SelectorCampoScreenState extends State<SelectorCampoScreen> {
     _recargar();
   }
 
+  // ---------------------------------------------------------------------------
+  // build — la lista de campos con sus cuatro estados posibles
+  //
+  // Uso un FutureBuilder sobre _futureCampos: mientras carga muestro una
+  // ruedita, si falla muestro el error, si no hay campos muestro el botón de
+  // "Crear mi primer campo", y si hay muestro la lista. Arriba está el botón de
+  // cerrar sesión (AuthGate me devuelve al login solo).
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,6 +162,12 @@ class _SelectorCampoScreenState extends State<SelectorCampoScreen> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// _DatosNuevoCampo — el "paquete" que devuelve el diálogo
+//
+// Es una clase mínima con el nombre y la ubicación (opcional). La uso para que
+// el diálogo me devuelva los dos datos juntos en un solo objeto al cerrarse.
+// ---------------------------------------------------------------------------
 class _DatosNuevoCampo {
   final String nombre;
   final String? ubicacion;
@@ -138,6 +175,13 @@ class _DatosNuevoCampo {
   _DatosNuevoCampo(this.nombre, this.ubicacion);
 }
 
+// ---------------------------------------------------------------------------
+// _FormularioNuevoCampo — el diálogo para crear un campo
+//
+// Es un AlertDialog con dos campos: nombre (obligatorio) y ubicación
+// (opcional). Al tocar "Crear" valido, y si está bien cierro el diálogo con
+// pop pasándole un _DatosNuevoCampo. Si la ubicación quedó vacía, mando null.
+// ---------------------------------------------------------------------------
 class _FormularioNuevoCampo extends StatefulWidget {
   const _FormularioNuevoCampo();
 

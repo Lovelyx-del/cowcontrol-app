@@ -14,7 +14,9 @@ class Animal {
   final String? etapaVida;
   final String? observaciones;
   final String campoId;
-
+  
+//modificador que declara la capacidad de crear animales con datos constantes. 
+//Aunque no es seguro que se use, no esta de mas crearlo
   const Animal({
     required this.id,
     required this.rfidUid,
@@ -35,6 +37,7 @@ class Animal {
       ? animalId
       : '$animalId - $apodo';
 
+  //declara que los datos ya traidos con el map, sean de una tipo especifico
   factory Animal.fromMap(Map<String, dynamic> map) {
     return Animal(
       id: map['id'] as String,
@@ -65,6 +68,8 @@ class Animal {
     Object? raza = _noTocado,
     Object? observaciones = _noTocado,
   }) {
+    //devuelve un animal nuevo cuando se modifica. Se crea un obj nuevo copiando
+    //los datos que no se modifcaron tal cual como estaban y, si se modifico se ingresa el dato nuevo a ese objeto nuevo
     return Animal(
       id: id,
       rfidUid: rfidUid,

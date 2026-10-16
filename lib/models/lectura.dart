@@ -6,6 +6,7 @@ class Lectura {
   final DateTime fechaHora;
   final String? observaciones;
 
+//el constructor guarda los valores en los campos del objeto
   const Lectura({
     required this.id,
     required this.rfidUid,
@@ -14,6 +15,7 @@ class Lectura {
     this.observaciones,
   });
 
+ //trae de map cada valor y lo guarda con un nombre 
   factory Lectura.fromMap(Map<String, dynamic> map) {
     return Lectura(
       id: map['id'] as String,

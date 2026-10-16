@@ -7,12 +7,14 @@ class Observacion {
   final String texto;
   final DateTime creadoEn;
 
+ //constructor que guarda los valores en los datos de la clase  
   const Observacion({
     required this.idAnimal,
     required this.texto,
     required this.creadoEn,
   });
 
+//llama los valores de map y les asigna un nombre de la clase a cada uno
   factory Observacion.fromMap(Map<String, dynamic> map) {
     return Observacion(
       idAnimal: map['id_animal'] as String,
